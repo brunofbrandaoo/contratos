@@ -37,8 +37,19 @@ if 'add_contract' in st.session_state:
         del st.session_state['add_contract']
         st.rerun()
 
+# Campo de pesquisa
+st.write("## Pesquisa de Contratos")
+pesquisa_numero = st.text_input("Pesquisar Número do Contrato")
+
+# Botão de pesquisa
+if st.button("Pesquisar"):
+    st.session_state['pesquisa_numero'] = pesquisa_numero
+
 # Exibir contratos
 contracts = get_contracts()
+if 'pesquisa_numero' in st.session_state:
+    contracts = [contract for contract in contracts if contract[1] == st.session_state['pesquisa_numero']]
+
 for contract in contracts:
     id, numero, objeto, dias_vencer, situacao = contract
     situacao = calculate_situation(dias_vencer)
@@ -76,10 +87,7 @@ for contract in contracts:
         if st.button(f"Remover Contrato {numero}", key=f"remove_{id}"):
             delete_contract(id)
             st.rerun()
-    
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    
+
     # Mostrar o formulário de edição imediatamente abaixo do contrato em questão
     if 'edit_contract' in st.session_state and st.session_state['edit_contract'] == id:
         st.write(f"**Editando Contrato:** {numero}")
@@ -93,3 +101,7 @@ for contract in contracts:
             st.success("Contrato atualizado com sucesso!")
             del st.session_state['edit_contract']
             st.rerun()
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    
