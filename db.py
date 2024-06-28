@@ -7,7 +7,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS contracts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             numero TEXT,
-            objeto TEXT,
+            fornecedor TEXT,
+            vig_inicio DATE,
+            vig_fim DATE,
             dias_vencer INTEGER,
             situacao TEXT
         )
@@ -30,18 +32,18 @@ def fetch_query(query, params=()):
     conn.close()
     return result
 
-def add_contract(numero, objeto, dias_vencer, situacao):
+def add_contract(numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao):
     execute_query('''
-        INSERT INTO contracts (numero, objeto, dias_vencer, situacao)
-        VALUES (?, ?, ?, ?)
-    ''', (numero, objeto, dias_vencer, situacao))
+        INSERT INTO contracts (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao))
 
-def update_contract(id, numero, objeto, dias_vencer, situacao):
+def update_contract(id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao):
     execute_query('''
         UPDATE contracts
-        SET numero = ?, objeto = ?, dias_vencer = ?, situacao = ?
+        SET numero = ?, fornecedor = ?, vig_inicio = ?, vig_fim = ?, dias_vencer = ?, situacao = ?
         WHERE id = ?
-    ''', (numero, objeto, dias_vencer, situacao, id))
+    ''', (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao, id))
 
 def delete_contract(id):
     execute_query('''
@@ -50,10 +52,10 @@ def delete_contract(id):
 
 def get_contracts():
     return fetch_query('''
-        SELECT id, numero, objeto, dias_vencer, situacao FROM contracts
+        SELECT id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao FROM contracts
     ''')
 
 def get_contract_by_id(id):
     return fetch_query('''
-        SELECT id, numero, objeto, dias_vencer, situacao FROM contracts WHERE id = ?
+        SELECT id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao FROM contracts WHERE id = ?
     ''', (id,))

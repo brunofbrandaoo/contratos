@@ -1,9 +1,6 @@
-import pandas as pd
 import streamlit as st
 from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id
-
-# Inicializar banco de dados
-init_db()
+from datetime import datetime
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
@@ -14,20 +11,12 @@ def calculate_situation(dias_vencer):
     else:
         return 'Vigente'
 
-st.title('Gerenciamento de Contratos')
+def show_gerenciar_contratos():
+    st.title('Gerenciamento de Contratos')
 
-# Barra lateral para navegação
-menu = st.sidebar.selectbox('Menu', options=['Planilha', 'Gerenciar Contratos'])
+    # Inicializar banco de dados
+    init_db()
 
-if menu == 'Planilha':
-    # Exibir contratos
-    contracts = get_contracts()
-    
-    if contracts:
-        df = pd.DataFrame(contracts, columns=['ID', 'Número', 'Fornecedor', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação'])
-        st.write("## Dados dos Contratos")
-        st.dataframe(df)
-else:
     # Botões em linha abaixo do título
     col1, col2 = st.columns(2)
     with col1:
@@ -43,10 +32,9 @@ else:
         fornecedor = st.text_input("Fornecedor do Contrato")
         vig_inicio = st.date_input("Vigência Início")
         vig_fim = st.date_input("Vigência Fim")
-        dias_vencer = st.number_input("Dias a Vencer", min_value=0, value=0)
-        situacao = calculate_situation(dias_vencer)
-        
         if st.button("Salvar Novo Contrato"):
+            dias_vencer = (vig_fim - datetime.today().date()).days
+            situacao = calculate_situation(dias_vencer)
             add_contract(numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao)
             st.success("Contrato adicionado com sucesso!")
             del st.session_state['add_contract']
@@ -65,8 +53,12 @@ else:
     if 'pesquisa_numero' in st.session_state:
         contracts = [contract for contract in contracts if contract[1] == st.session_state['pesquisa_numero']]
 
+    today = datetime.today().date()
     for contract in contracts:
-        id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao = contract
+        id, numero, fornecedor, vig_inicio, vig_fim, *rest = contract
+        vig_inicio = datetime.strptime(vig_inicio, "%Y-%m-%d").date()
+        vig_fim = datetime.strptime(vig_fim, "%Y-%m-%d").date()
+        dias_vencer = (vig_fim - today).days
         situacao = calculate_situation(dias_vencer)
         
         col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1, 1])
@@ -112,7 +104,7 @@ else:
             novo_fornecedor = st.text_input("Fornecedor do Contrato", value=fornecedor, key=f"fornecedor_{id}")
             novo_vig_inicio = st.date_input("Vigência Início", value=vig_inicio, key=f"vig_inicio_{id}")
             novo_vig_fim = st.date_input("Vigência Fim", value=vig_fim, key=f"vig_fim_{id}")
-            novos_dias_vencer = st.number_input("Dias a Vencer", value=dias_vencer, key=f"dias_vencer_{id}")
+            novos_dias_vencer = (novo_vig_fim - today).days
             
             if st.button("Salvar Alterações", key=f"salvar_{id}"):
                 situacao = calculate_situation(novos_dias_vencer)
