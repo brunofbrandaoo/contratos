@@ -63,11 +63,11 @@ def show_dashboard():
             .dashboard-box h3, .dashboard-box h1, .dashboard-box p {{
                 color: white;
             }}
-            .total-contratos {{ background-color: #28a745; }}
-            .vencido {{ background-color: #dc3545; }}
-            .renovar {{ background-color: #fd7e14; }}
-            .vencer-30-60 {{ background-color: #ffc107; }}
-            .vencer-60-90 {{ background-color: #ff7f50; }}
+            .total-contratos {{ background-color: #d3d3d3; }}
+            .vencido {{ background-color: #000000; }}
+            .renovar {{ background-color: #dc3545; }}
+            .vencer-30-60 {{ background-color: #ff7f50; }}
+            .vencer-60-90 {{ background-color: #ffc107; }}
         </style>
         <div class="dashboard-container">
             <div class="dashboard-box total-contratos">
