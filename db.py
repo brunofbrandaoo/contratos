@@ -6,12 +6,18 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS contracts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero TEXT,
+            numero_processo TEXT,
+            numero_contrato TEXT,
+            objeto TEXT,
             fornecedor TEXT,
+            situacao TEXT,
+            valor_contrato REAL,
             vig_inicio DATE,
             vig_fim DATE,
+            prazo_limite DATE,
             dias_vencer INTEGER,
-            situacao TEXT
+            aditivo TEXT,
+            prox_passo TEXT
         )
     ''')
     conn.commit()
@@ -32,18 +38,18 @@ def fetch_query(query, params=()):
     conn.close()
     return result
 
-def add_contract(numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao):
+def add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo):
     execute_query('''
-        INSERT INTO contracts (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao))
+        INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo))
 
-def update_contract(id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao):
+def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo):
     execute_query('''
         UPDATE contracts
-        SET numero = ?, fornecedor = ?, vig_inicio = ?, vig_fim = ?, dias_vencer = ?, situacao = ?
+        SET numero_processo = ?, numero_contrato = ?, fornecedor = ?, objeto = ?, situacao = ?, valor_contrato = ?, vig_inicio = ?, vig_fim = ?, prazo_limite = ?, dias_vencer = ?, aditivo = ?, prox_passo = ?
         WHERE id = ?
-    ''', (numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao, id))
+    ''', (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, id))
 
 def delete_contract(id):
     execute_query('''
@@ -52,10 +58,15 @@ def delete_contract(id):
 
 def get_contracts():
     return fetch_query('''
-        SELECT id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao FROM contracts
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo FROM contracts
     ''')
 
 def get_contract_by_id(id):
     return fetch_query('''
-        SELECT id, numero, fornecedor, vig_inicio, vig_fim, dias_vencer, situacao FROM contracts WHERE id = ?
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo FROM contracts WHERE id = ?
     ''', (id,))
+
+if __name__ == "__main__":
+    init_db()
+    print("Banco de dados e tabela 'contracts' criados com sucesso.")
+    

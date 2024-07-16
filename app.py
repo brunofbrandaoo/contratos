@@ -2,14 +2,17 @@ import streamlit as st
 from dashboard import show_dashboard
 from planilha import show_planilha
 from gerenciar_contratos import show_gerenciar_contratos
+# Configura o layout para wide (largura total da página)
+st.set_page_config(layout="wide")
 
-# Barra lateral para navegação
-st.sidebar.title('Menu')
-page = st.sidebar.radio('Selecione uma página:', ['Dashboard', 'Planilha', 'Gerenciar Contratos'])
+# Criar abas na interface principal
+tab1, tab2, tab3 = st.tabs(['Dashboard', 'Planilha', 'Gerenciar Contratos'])
 
-if page == 'Dashboard':
+with tab1:
     show_dashboard()
-elif page == 'Planilha':
+
+with tab2:
     show_planilha()
-elif page == 'Gerenciar Contratos':
+
+with tab3:
     show_gerenciar_contratos()
