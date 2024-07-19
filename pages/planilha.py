@@ -49,3 +49,6 @@ def show_planilha():
         st.dataframe(df)
     else:
         st.write("Nenhum contrato encontrado.")
+
+# Chama a função show_planilha
+show_planilha()
