@@ -6,23 +6,10 @@ from datetime import datetime
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
 
-# Função para calcular a situação do contrato
-def calculate_situation(dias_vencer):
-    if dias_vencer < 0:
-        return 'Vencido'
-    elif dias_vencer <= 30:
-        return 'Renovar'
-    elif dias_vencer <= 60:
-        return 'Vencer 30 a 60 dias'
-    elif dias_vencer <= 90:
-        return 'Vencer 60 a 90 dias'
-    else:
-        return 'Vigente'
+def show_total_contracts():
+    st.title('Total de Contratos')
 
-def show_planilha():
-    st.title('Planilha de Contratos')
-
-    # Exibir contratos
+    # Obter dados dos contratos
     contracts = get_contracts()
 
     if contracts:
@@ -53,5 +40,18 @@ def show_planilha():
     else:
         st.write("Nenhum contrato encontrado.")
 
-# Chama a função show_planilha
-show_planilha()
+# Função para calcular a situação do contrato
+def calculate_situation(dias_vencer):
+    if dias_vencer < 0:
+        return 'Vencido'
+    elif dias_vencer <= 30:
+        return 'Renovar'
+    elif dias_vencer <= 60:
+        return 'Vencer 30 a 60 dias'
+    elif dias_vencer <= 90:
+        return 'Vencer 60 a 90 dias'
+    else:
+        return 'Vigente'
+
+# Chama a função show_total_contracts
+show_total_contracts()

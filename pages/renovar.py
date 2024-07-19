@@ -6,6 +6,41 @@ from datetime import datetime
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
 
+def show_renovar():
+    st.title('Contratos a Renovar')
+
+    # Obter dados dos contratos
+    contracts = get_contracts()
+
+    if contracts:
+        today = datetime.today().date()
+        renovar = []
+        for contract in contracts:
+            vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
+            dias_a_vencer = (vig_fim_date - today).days
+            situacao_calculada = calculate_situation(dias_a_vencer)
+            if situacao_calculada == 'Renovar':
+                renovar.append(
+                    (
+                        contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
+                        contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
+                        contract[11], contract[12]
+                    )
+                )
+        
+        df = pd.DataFrame(
+            renovar, 
+            columns=[
+                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
+                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
+            ]
+        )
+        st.write("## Contratos a Renovar")
+        st.dataframe(df)
+    else:
+        st.write("Nenhum contrato encontrado.")
+
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
@@ -19,39 +54,5 @@ def calculate_situation(dias_vencer):
     else:
         return 'Vigente'
 
-def show_planilha():
-    st.title('Planilha de Contratos')
-
-    # Exibir contratos
-    contracts = get_contracts()
-
-    if contracts:
-        today = datetime.today().date()
-        transformed_contracts = []
-        for contract in contracts:
-            vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
-            dias_a_vencer = (vig_fim_date - today).days
-            situacao_calculada = calculate_situation(dias_a_vencer)
-            transformed_contracts.append(
-                (
-                    contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
-                    contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
-                    contract[11], contract[12]
-                )
-            )
-        
-        df = pd.DataFrame(
-            transformed_contracts, 
-            columns=[
-                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
-                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
-            ]
-        )
-        st.write("## Dados dos Contratos")
-        st.dataframe(df)
-    else:
-        st.write("Nenhum contrato encontrado.")
-
-# Chama a função show_planilha
-show_planilha()
+# Chama a função show_renovar
+show_renovar()

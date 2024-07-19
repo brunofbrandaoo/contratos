@@ -3,6 +3,9 @@ from db import init_db, add_contract, update_contract, delete_contract, get_cont
 from datetime import datetime, timedelta
 import os
 
+# Configura o layout para wide (largura total da página)
+st.set_page_config(layout="wide")
+
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
