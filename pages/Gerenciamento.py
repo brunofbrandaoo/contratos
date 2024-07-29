@@ -57,19 +57,102 @@ def add_contract_dialog():
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")
 
-    aditivo_checked = st.checkbox("Aditivo")
-    if aditivo_checked:
-        novo_vig_fim = st.date_input("Nova Data Final", value=vig_fim)
-        aditivo = 1
-    else:
-        novo_vig_fim = vig_fim
-        aditivo = 0
-
     if st.button("Salvar Novo Contrato"):
-        dias_vencer = (novo_vig_fim - datetime.today().date()).days
+        dias_vencer = (vig_fim - datetime.today().date()).days
         situacao_calculada = calculate_situation(dias_vencer)
-        add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, novo_vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor)
+        add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, 0, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor)
         st.session_state.show_add_contract_dialog = False
+        st.rerun()
+
+@st.experimental_dialog(title="Adicionar Aditivo")
+def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual):
+    st.write(f"**Adicionar Aditivo ao Contrato:** {numero_contrato}")
+    novo_vig_fim = st.date_input("Nova Data Final", value=vig_fim_atual)
+    
+    if st.button("Salvar Aditivo"):
+        today = datetime.today().date()
+        dias_vencer = (novo_vig_fim - today).days
+        situacao_calculada = calculate_situation(dias_vencer)
+        contract = get_contract_by_id(contract_id)
+        if contract:
+            (
+                id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, 
+                prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
+                data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor
+            ) = contract
+            
+            novo_aditivo = int(aditivo) + 1 if aditivo.isdigit() else 1
+            
+            update_contract(
+                id,
+                numero_processo,
+                numero_contrato,
+                fornecedor,
+                objeto,
+                situacao_calculada,
+                valor_contrato,
+                vig_inicio,
+                novo_vig_fim,
+                prazo_limite,
+                dias_vencer,
+                novo_aditivo,
+                prox_passo,
+                modalidade,
+                amparo_legal,
+                categoria,
+                data_assinatura,
+                data_publicacao,
+                itens,
+                quantidade,
+                valor_unitario,
+                valor_total,
+                gestor,
+                contato,
+                setor
+            )
+            st.success("Aditivo adicionado com sucesso!")
+            st.session_state.show_add_aditivo_dialog = False
+            st.rerun()
+
+
+
+@st.experimental_dialog(title="Editar Contrato")
+def edit_contract_dialog(contract):
+    id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor = contract
+    st.write(f"**Editando Contrato:** {numero_contrato}")
+    novo_numero_processo = st.text_input("Número do Processo", value=numero_processo, key=f"numero_processo_{id}")
+    novo_numero_contrato = st.text_input("Número do Contrato", value=numero_contrato, key=f"numero_contrato_{id}")
+    novo_fornecedor = st.text_input("Fornecedor do Contrato", value=fornecedor, key=f"fornecedor_{id}")
+    novo_objeto = st.text_input("Objeto", value=objeto, key=f"objeto_{id}")
+    novo_valor_contrato = st.number_input("Valor do Contrato", value=valor_contrato, step=0.01, key=f"valor_contrato_{id}")
+    novo_vig_inicio = st.date_input("Vigência Início", value=datetime.strptime(vig_inicio, "%Y-%m-%d").date(), key=f"vig_inicio_{id}")
+    novo_vig_fim = st.date_input("Vigência Fim", value=datetime.strptime(vig_fim, "%Y-%m-%d").date(), key=f"vig_fim_{id}")
+    novo_prazo_limite = novo_vig_fim - timedelta(days=60)
+    novo_aditivo = int(aditivo) if aditivo.isdigit() else 0
+
+    # Novos campos no formulário de edição
+    nova_modalidade = st.selectbox("Modalidade", ["dispensa", "inegibilidade", "pregao", "concorrencia"], index=["dispensa", "inegibilidade", "pregao", "concorrencia"].index(modalidade), key=f"modalidade_{id}")
+    novo_amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"], index=["Lei 8.666/93", "Lei 14.133/21"].index(amparo_legal), key=f"amparo_legal_{id}")
+    nova_categoria = st.selectbox("Categoria", ["compras", "serviços"], index=["compras", "serviços"].index(categoria), key=f"categoria_{id}")
+    nova_data_assinatura = st.date_input("Data de Assinatura", value=datetime.strptime(data_assinatura, "%Y-%m-%d").date() if data_assinatura else None, key=f"data_assinatura_{id}")
+    nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
+    novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
+    nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
+    novo_valor_unitario = st.number_input("Valor Unitário", value=valor_unitario, step=0.01, key=f"valor_unitario_{id}")
+    novo_valor_total = st.number_input("Valor Total", value=valor_total, step=0.01, key=f"valor_total_{id}")
+    novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
+    novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
+    novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
+
+    novo_prox_passo = st.text_input("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
+
+    novos_dias_vencer = (novo_vig_fim - datetime.today().date()).days
+
+    if st.button("Salvar Alterações", key=f"salvar_{id}"):
+        situacao_calculada = calculate_situation(novos_dias_vencer)
+        update_contract(id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, nova_data_publicacao, novos_itens, nova_quantidade, novo_valor_unitario, novo_valor_total, novo_gestor, novo_contato, novo_setor)
+        st.success("Contrato atualizado com sucesso!")
+        st.session_state.show_edit_contract_dialog = False
         st.rerun()
 
 def show_gerenciar_contratos():
@@ -152,63 +235,25 @@ def show_gerenciar_contratos():
         with col4:
             st.write("")
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             if st.button(f"Editar Contrato {numero_contrato}", key=f"edit_{id}"):
                 st.session_state['edit_contract'] = id
-                st.rerun()
+                edit_contract_dialog(contract)
         with col2:
             if st.button(f"Remover Contrato {numero_contrato}", key=f"remove_{id}"):
                 delete_contract(id)
                 st.rerun()
         with col3:
+            if st.button(f"Adicionar Aditivo {numero_contrato}", key=f"add_aditivo_{id}"):
+                st.session_state['show_add_aditivo_dialog'] = id
+                add_aditivo_dialog(id, numero_contrato, vig_fim)
+
+        with col4:
             uploaded_file = st.file_uploader(f"Anexos", type="pdf", key=f"upload_{id}")
             if uploaded_file is not None:
                 file_path = save_uploaded_file(uploaded_file, id)
                 st.success(f"Arquivo PDF anexado com sucesso: {file_path}")
-
-        # Mostrar o formulário de edição imediatamente abaixo do contrato em questão
-        if 'edit_contract' in st.session_state and st.session_state['edit_contract'] == id:
-            st.write(f"**Editando Contrato:** {numero_contrato}")
-            novo_numero_processo = st.text_input("Número do Processo", value=numero_processo, key=f"numero_processo_{id}")
-            novo_numero_contrato = st.text_input("Número do Contrato", value=numero_contrato, key=f"numero_contrato_{id}")
-            novo_fornecedor = st.text_input("Fornecedor do Contrato", value=fornecedor, key=f"fornecedor_{id}")
-            novo_objeto = st.text_input("Objeto", value=objeto, key=f"objeto_{id}")
-            novo_valor_contrato = st.number_input("Valor do Contrato", value=valor_contrato, step=0.01, key=f"valor_contrato_{id}")
-            novo_vig_inicio = st.date_input("Vigência Início", value=vig_inicio, key=f"vig_inicio_{id}")
-            novo_vig_fim = st.date_input("Vigência Fim", value=vig_fim, key=f"vig_fim_{id}")
-            novo_prazo_limite = novo_vig_fim - timedelta(days=60)
-            novo_aditivo = int(aditivo) if aditivo.isdigit() else 0
-
-            # Novos campos no formulário de edição
-            nova_modalidade = st.selectbox("Modalidade", ["dispensa", "inegibilidade", "pregao", "concorrencia"], index=["dispensa", "inegibilidade", "pregao", "concorrencia"].index(modalidade), key=f"modalidade_{id}")
-            novo_amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"], index=["Lei 8.666/93", "Lei 14.133/21"].index(amparo_legal), key=f"amparo_legal_{id}")
-            nova_categoria = st.selectbox("Categoria", ["compras", "serviços"], index=["compras", "serviços"].index(categoria), key=f"categoria_{id}")
-            nova_data_assinatura = st.date_input("Data de Assinatura", value=datetime.strptime(data_assinatura, "%Y-%m-%d").date() if data_assinatura else None, key=f"data_assinatura_{id}")
-            nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
-            novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
-            nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
-            novo_valor_unitario = st.number_input("Valor Unitário", value=valor_unitario, step=0.01, key=f"valor_unitario_{id}")
-            novo_valor_total = st.number_input("Valor Total", value=valor_total, step=0.01, key=f"valor_total_{id}")
-            novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
-            novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
-            novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
-
-            aditivo_checked = st.checkbox("Aditivo", key=f"aditivo_{id}")
-            if aditivo_checked:
-                novo_vig_fim = st.date_input("Nova Data Final", value=vig_fim, key=f"novo_vig_fim_{id}")
-                novo_aditivo += 1
-
-            novo_prox_passo = st.text_input("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
-
-            novos_dias_vencer = (novo_vig_fim - today).days
-            
-            if st.button("Salvar Alterações", key=f"salvar_{id}"):
-                situacao_calculada = calculate_situation(novos_dias_vencer)
-                update_contract(id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, nova_data_publicacao, novos_itens, nova_quantidade, novo_valor_unitario, novo_valor_total, novo_gestor, novo_contato, novo_setor)
-                st.success("Contrato atualizado com sucesso!")
-                del st.session_state['edit_contract']
-                st.rerun()
 
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)

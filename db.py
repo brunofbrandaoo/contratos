@@ -74,9 +74,12 @@ def get_contracts():
     ''')
 
 def get_contract_by_id(id):
-    return fetch_query('''
-        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor FROM contracts WHERE id = ?
+    result = fetch_query('''
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor 
+        FROM contracts WHERE id = ?
     ''', (id,))
+    return result[0] if result else None
+
 
 if __name__ == "__main__":
     init_db()
