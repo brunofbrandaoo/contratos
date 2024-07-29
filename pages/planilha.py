@@ -45,8 +45,9 @@ def show_planilha():
             situacao_calculada = calculate_situation(dias_a_vencer)
             transformed_contracts.append(
                 (
-                    contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
-                    contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
+                    contract[2], contract[3], contract[4], 
+                    contract[6], contract[7], contract[8], 
+                    contract[9], dias_a_vencer, situacao_calculada, 
                     contract[11], contract[12]
                 )
             )
@@ -54,14 +55,15 @@ def show_planilha():
         df = pd.DataFrame(
             transformed_contracts, 
             columns=[
-                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
-                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
+                'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 
+                'Prazo Limite', 'Dias a Vencer', 'Situação', 
+                'Aditivo', 'Movimentação'
             ]
         )
         
         # Aplicar cores à coluna Situação
-        styled_df = df.style.map(color_situation, subset=['Situação'])
+        styled_df = df.style.applymap(color_situation, subset=['Situação'])
         
         st.write("## Dados dos Contratos")
         st.dataframe(styled_df)
