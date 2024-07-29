@@ -39,7 +39,7 @@ def calculate_dashboard_data(contracts):
     return total, vencido, renovar, vencer_30_60, vencer_60_90, vigente, vencido_percent, renovar_percent, vencer_30_60_percent, vencer_60_90_percent, vigente_percent
 
 def show_dashboard():
-    st.title('Dashboard de Contratos')
+    st.markdown("<h1 style='text-align: center; margin-bottom: 48px;'>Dashboard de Contratos</h1>", unsafe_allow_html=True)
 
     # Obter dados dos contratos
     contracts = get_contracts()

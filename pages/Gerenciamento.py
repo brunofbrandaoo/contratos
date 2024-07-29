@@ -43,15 +43,16 @@ def add_contract_dialog():
     prox_passo = st.text_input("Próximo Passo")
 
     # Novos campos com selectbox
-    modalidade = st.selectbox("Modalidade", ["dispensa", "inegibilidade", "pregao", "concorrencia"])
+    modalidade = st.selectbox("Modalidade", ["dispensa", "inegibilidade", "pregao", "concorrencia", "Adesão a Ata"])
     amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"])
-    categoria = st.selectbox("Categoria", ["compras", "serviços"])
+    categoria = st.selectbox("Categoria", ["compras", "serviços", "Obras"])
     data_assinatura = st.date_input("Data de Assinatura")
     data_publicacao = st.date_input("Data de Publicação")
-    itens = st.text_input("Itens")
-    quantidade = st.number_input("Quantidade", step=1)
+    itens = st.text_input("Itens") 
+    quantidade = st.number_input("Quantidade de itens", step=1)
     valor_unitario = st.number_input("Valor Unitário", step=0.01)
     valor_total = st.number_input("Valor Total", step=0.01)
+    # adicionar valor_contrato e tirar esse unitario e total
     gestor = st.text_input("Gestor")
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")

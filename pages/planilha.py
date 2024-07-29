@@ -19,6 +19,17 @@ def calculate_situation(dias_vencer):
     else:
         return 'Vigente'
 
+# Função para aplicar cores com base na situação
+def color_situation(val):
+    color = {
+        'Vencido': '#000000',
+        'Renovar': '#dc3545',
+        'Vencer 30 a 60 dias': '#ff7f50',
+        'Vencer 60 a 90 dias': '#ffc107',
+        'Vigente': '#28a745'
+    }.get(val, '')
+    return f'background-color: {color}; color: white'
+
 def show_planilha():
     st.title('Planilha de Contratos')
 
@@ -48,8 +59,12 @@ def show_planilha():
                 'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
             ]
         )
+        
+        # Aplicar cores à coluna Situação
+        styled_df = df.style.applymap(color_situation, subset=['Situação'])
+        
         st.write("## Dados dos Contratos")
-        st.dataframe(df)
+        st.dataframe(styled_df)
     else:
         st.write("Nenhum contrato encontrado.")
 
