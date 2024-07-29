@@ -3,6 +3,7 @@ import pandas as pd
 from db import get_contracts
 from datetime import datetime
 
+# tirar prazo limite
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
 
@@ -46,8 +47,7 @@ def show_planilha():
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
-                    contract[6], contract[7], contract[8], 
-                    contract[9], dias_a_vencer, situacao_calculada, 
+                    contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
                     contract[11], contract[12]
                 )
             )
@@ -56,8 +56,7 @@ def show_planilha():
             transformed_contracts, 
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 
-                'Prazo Limite', 'Dias a Vencer', 'Situação', 
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
                 'Aditivo', 'Movimentação'
             ]
         )

@@ -4,6 +4,7 @@ import altair as alt
 from db import get_contracts
 from datetime import datetime
 
+#colocar container azul 90 a 180
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
 
@@ -58,7 +59,7 @@ def show_dashboard():
             </a>
             <a href="/renovar" style="text-decoration: none;">
                 <div style="background-color: #dc3545; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                    <div>Renovar</div>
+                    <div>Renovar - até 30 dias</div>
                     <div style="font-size: 24px;">{renovar}</div>
                 </div>
             </a>
