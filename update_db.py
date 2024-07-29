@@ -1,12 +1,8 @@
-import sqlite3
+import os
 
-def clear_table():
-    conn = sqlite3.connect('contracts.db')
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM contracts')
-    conn.commit()
-    conn.close()
-    print("Todos os dados da tabela 'contracts' foram apagados.")
-
-if __name__ == "__main__":
-    clear_table()
+# Excluir o arquivo contracts.db se ele existir
+if os.path.exists('contracts.db'):
+    os.remove('contracts.db')
+    print("Arquivo contracts.db excluído com sucesso.")
+else:
+    print("Arquivo contracts.db não encontrado.")

@@ -50,9 +50,9 @@ def add_contract_dialog():
     data_publicacao = st.date_input("Data de Publicação")
     itens = st.text_input("Itens") 
     quantidade = st.number_input("Quantidade de itens", step=1)
-    valor_unitario = st.number_input("Valor Unitário", step=0.01)
-    valor_total = st.number_input("Valor Total", step=0.01)
-    # adicionar valor_contrato e tirar esse unitario e total
+    # Novos campos de observacao e acompanhamento
+    observacao = st.text_input("Observação")
+    acompanhamento = st.text_input("Acompanhamento")
     gestor = st.text_input("Gestor")
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")
@@ -60,7 +60,7 @@ def add_contract_dialog():
     if st.button("Salvar Novo Contrato"):
         dias_vencer = (vig_fim - datetime.today().date()).days
         situacao_calculada = calculate_situation(dias_vencer)
-        add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, 0, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor)
+        add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, 0, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento)
         st.session_state.show_add_contract_dialog = False
         st.rerun()
 
@@ -78,7 +78,7 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual):
             (
                 id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, 
                 prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
-                data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor
+                data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento
             ) = contract
             
             novo_aditivo = int(aditivo) + 1 if aditivo.isdigit() else 1
@@ -104,21 +104,23 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual):
                 data_publicacao,
                 itens,
                 quantidade,
-                valor_unitario,
-                valor_total,
                 gestor,
                 contato,
-                setor
+                setor,
+                observacao,
+                acompanhamento
             )
             st.success("Aditivo adicionado com sucesso!")
             st.session_state.show_add_aditivo_dialog = False
             st.rerun()
 
-
-
 @st.experimental_dialog(title="Editar Contrato")
 def edit_contract_dialog(contract):
-    id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor = contract
+    (
+        id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+        dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
+        quantidade, gestor, contato, setor, observacao, acompanhamento
+    ) = contract
     st.write(f"**Editando Contrato:** {numero_contrato}")
     novo_numero_processo = st.text_input("Número do Processo", value=numero_processo, key=f"numero_processo_{id}")
     novo_numero_contrato = st.text_input("Número do Contrato", value=numero_contrato, key=f"numero_contrato_{id}")
@@ -138,8 +140,9 @@ def edit_contract_dialog(contract):
     nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
     novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
     nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
-    novo_valor_unitario = st.number_input("Valor Unitário", value=valor_unitario, step=0.01, key=f"valor_unitario_{id}")
-    novo_valor_total = st.number_input("Valor Total", value=valor_total, step=0.01, key=f"valor_total_{id}")
+    # Novos campos de observacao e acompanhamento
+    nova_observacao = st.text_input("Observação", value=observacao, key=f"observacao_{id}")
+    novo_acompanhamento = st.text_input("Acompanhamento", value=acompanhamento, key=f"acompanhamento_{id}")
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
@@ -150,7 +153,11 @@ def edit_contract_dialog(contract):
 
     if st.button("Salvar Alterações", key=f"salvar_{id}"):
         situacao_calculada = calculate_situation(novos_dias_vencer)
-        update_contract(id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, nova_data_publicacao, novos_itens, nova_quantidade, novo_valor_unitario, novo_valor_total, novo_gestor, novo_contato, novo_setor)
+        update_contract(
+            id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, 
+            novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
+            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_acompanhamento
+        )
         st.success("Contrato atualizado com sucesso!")
         st.session_state.show_edit_contract_dialog = False
         st.rerun()
@@ -183,7 +190,7 @@ def show_gerenciar_contratos():
 
     today = datetime.today().date()
     for contract in contracts:
-        id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, valor_unitario, valor_total, gestor, contato, setor = contract
+        id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento = contract
         vig_inicio = datetime.strptime(vig_inicio, "%Y-%m-%d").date()
         vig_fim = datetime.strptime(vig_fim, "%Y-%m-%d").date()
         prazo_limite = vig_fim - timedelta(days=60)
@@ -211,8 +218,8 @@ def show_gerenciar_contratos():
                 st.write(f"**Data de Publicação:** {data_publicacao}")
                 st.write(f"**Itens:** {itens}")
                 st.write(f"**Quantidade:** {quantidade}")
-                st.write(f"**Valor Unitário:** {valor_unitario}")
-                st.write(f"**Valor Total:** {valor_total}")
+                st.write(f"**Observação:** {observacao}")
+                st.write(f"**Acompanhamento:** {acompanhamento}")
                 st.write(f"**Gestor:** {gestor}")
                 st.write(f"**Contato:** {contato}")
                 st.write(f"**Setor:** {setor}")

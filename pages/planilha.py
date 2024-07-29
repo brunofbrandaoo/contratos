@@ -61,7 +61,7 @@ def show_planilha():
         )
         
         # Aplicar cores à coluna Situação
-        styled_df = df.style.applymap(color_situation, subset=['Situação'])
+        styled_df = df.style.map(color_situation, subset=['Situação'])
         
         st.write("## Dados dos Contratos")
         st.dataframe(styled_df)
