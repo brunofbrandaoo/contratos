@@ -1,9 +1,8 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 from db import get_contracts
 from datetime import datetime
 
-# tirar prazo limite
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
 
@@ -44,11 +43,12 @@ def show_planilha():
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
+            link_detalhes = f"http://localhost:8501/Gerenciamento?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
                     contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                    contract[11], contract[12]
+                    contract[11], contract[12], link_detalhes
                 )
             )
         
@@ -57,15 +57,22 @@ def show_planilha():
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
-                'Aditivo', 'Movimentação'
+                'Aditivo', 'Movimentação', 'Detalhes'
             ]
         )
         
-        # Aplicar cores à coluna Situação
-        styled_df = df.style.applymap(color_situation, subset=['Situação'])
-        
-        st.write("## Dados dos Contratos")
-        st.dataframe(styled_df)
+        # Configurar a coluna de links
+        st.dataframe(
+            df,
+            column_config={
+                "Detalhes": st.column_config.LinkColumn(
+                    "Detalhes",
+                    help="Clique para ver os detalhes do contrato",
+                    display_text="Detalhar"
+                )
+            },
+            hide_index=True,
+        )
     else:
         st.write("Nenhum contrato encontrado.")
 

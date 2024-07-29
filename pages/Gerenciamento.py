@@ -162,6 +162,38 @@ def edit_contract_dialog(contract):
         st.session_state.show_edit_contract_dialog = False
         st.rerun()
 
+def contract_details_page(contract_id):
+    contract = get_contract_by_id(contract_id)
+    if contract:
+        (
+            id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+            dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
+            quantidade, gestor, contato, setor, observacao, acompanhamento
+        ) = contract
+        st.write(f"**Detalhes do Contrato:** {numero_contrato}")
+        st.write(f"**Fornecedor do Contrato:** {fornecedor}")
+        st.write(f"**Objeto:** {objeto}")
+        st.write(f"**Situação:** {situacao}")
+        st.write(f"**Valor do Contrato:** {valor_contrato}")
+        st.write(f"**Vigência Início:** {vig_inicio}")
+        st.write(f"**Vigência Fim:** {vig_fim}")
+        st.write(f"**Prazo Limite:** {prazo_limite}")
+        st.write(f"**Aditivo:** {aditivo}")
+        st.write(f"**Próximo Passo:** {prox_passo}")
+        # Exibir novos campos
+        st.write(f"**Modalidade:** {modalidade}")
+        st.write(f"**Amparo Legal:** {amparo_legal}")
+        st.write(f"**Categoria:** {categoria}")
+        st.write(f"**Data de Assinatura:** {data_assinatura}")
+        st.write(f"**Data de Publicação:** {data_publicacao}")
+        st.write(f"**Itens:** {itens}")
+        st.write(f"**Quantidade:** {quantidade}")
+        st.write(f"**Observação:** {observacao}")
+        st.write(f"**Acompanhamento:** {acompanhamento}")
+        st.write(f"**Gestor:** {gestor}")
+        st.write(f"**Contato:** {contato}")
+        st.write(f"**Setor:** {setor}")
+
 def show_gerenciar_contratos():
     # Inicializar banco de dados
     init_db()
@@ -198,30 +230,8 @@ def show_gerenciar_contratos():
         col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1, 1])
         
         with col1:
-            with st.expander(f"Número do Contrato: {numero_contrato}"):
-                st.write(f"**Fornecedor do Contrato:** {fornecedor}")
-                st.write(f"**Objeto:** {objeto}")
-                st.write(f"**Situação:** {situacao_calculada}")
-                st.write(f"**Valor do Contrato:** {valor_contrato}")
-                st.write(f"**Vigência Início:** {vig_inicio}")
-                st.write(f"**Vigência Fim:** {vig_fim}")
-                st.write(f"**Prazo Limite:** {prazo_limite}")
-                st.write(f"**Aditivo:** {aditivo}")
-                st.write(f"**Próximo Passo:** {prox_passo}")
-                # Exibir novos campos
-                st.write(f"**Modalidade:** {modalidade}")
-                st.write(f"**Amparo Legal:** {amparo_legal}")
-                st.write(f"**Categoria:** {categoria}")
-                st.write(f"**Data de Assinatura:** {data_assinatura}")
-                st.write(f"**Data de Publicação:** {data_publicacao}")
-                st.write(f"**Itens:** {itens}")
-                st.write(f"**Quantidade:** {quantidade}")
-                st.write(f"**Observação:** {observacao}")
-                st.write(f"**Acompanhamento:** {acompanhamento}")
-                st.write(f"**Gestor:** {gestor}")
-                st.write(f"**Contato:** {contato}")
-                st.write(f"**Setor:** {setor}")
-
+            st.markdown(f"[Ver Contrato: {numero_contrato}](?page=details&contract_id={id})")
+        
         with col2:
             st.markdown(f"""
             <div style='text-align: center; position: relative; bottom: 30px;'>
@@ -263,5 +273,13 @@ def show_gerenciar_contratos():
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
-# Chama a função show_gerenciar_contratos
-show_gerenciar_contratos()
+# Lógica para decidir qual página exibir
+query_params = st.experimental_get_query_params()
+page = query_params.get("page", ["main"])[0]
+
+if page == "details":
+    contract_id = query_params.get("contract_id", [None])[0]
+    if contract_id:
+        contract_details_page(contract_id)
+else:
+    show_gerenciar_contratos()
