@@ -48,14 +48,38 @@ def show_dashboard():
         contracts = [(contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], contract[9], (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, calculate_situation((datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days)) for contract in contracts]
         total, vencido, renovar, vencer_30_60, vencer_60_90, vigente, vencido_percent, renovar_percent, vencer_30_60_percent, vencer_60_90_percent, vigente_percent = calculate_dashboard_data(contracts)
 
-        # Exibir link buttons do dashboard
+        # Exibir link buttons do dashboard com contadores
         col1, col2 = st.columns([2, 1])
         with col1:
-            link_button('Total Contratos', '/total_contracts', variant='default', class_name='bg-stone-300 text-white rounded-lg w-96 h-32 hover:bg-stone-100 shadow-md', key='total_contracts')
-            link_button('Contratos Vencidos', '/contratos_vencidos', variant='default', class_name='bg-slate-950 hover:bg-slate-550 text-white rounded-lg w-96 h-32 shadow-md', key='contratos_vencidos')
-            link_button('Vencer em 30 Dias', '/renovar', variant='default', class_name='bg-red-600 hover:bg-red-300 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_30_dias')
-            link_button('Vencer em 30 a 60 Dias', '/vencer_30_60', variant='default', class_name='bg-orange-400 hover:bg-orange-200 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_30_60_dias')
-            link_button('Vencer em 60 a 90 Dias', '/vencer_60_90', variant='default', class_name='bg-yellow-300 hover:bg-yellow-100 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_60_90_dias')
+            col3, col4 = st.columns([3, 1])
+            with col3:
+                link_button('Total Contratos', '/total_contracts', variant='default', class_name='bg-stone-300 text-white rounded-lg w-96 h-32 hover:bg-stone-100 shadow-md', key='total_contracts')
+            with col4:
+                st.metric("Total", total)
+            
+            col3, col4 = st.columns([3, 1])
+            with col3:
+                link_button('Contratos Vencidos', '/contratos_vencidos', variant='default', class_name='bg-slate-950 hover:bg-slate-550 text-white rounded-lg w-96 h-32 shadow-md', key='contratos_vencidos')
+            with col4:
+                st.metric("Vencidos", vencido)
+            
+            col3, col4 = st.columns([3, 1])
+            with col3:
+                link_button('Vencer em 30 Dias', '/renovar', variant='default', class_name='bg-red-600 hover:bg-red-300 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_30_dias')
+            with col4:
+                st.metric("Renovar", renovar)
+            
+            col3, col4 = st.columns([3, 1])
+            with col3:
+                link_button('Vencer em 30 a 60 Dias', '/vencer_30_60', variant='default', class_name='bg-orange-400 hover:bg-orange-200 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_30_60_dias')
+            with col4:
+                st.metric("30 a 60 dias", vencer_30_60)
+            
+            col3, col4 = st.columns([3, 1])
+            with col3:
+                link_button('Vencer em 60 a 90 Dias', '/vencer_60_90', variant='default', class_name='bg-yellow-300 hover:bg-yellow-100 text-white rounded-lg w-96 h-32 shadow-md', key='vencer_60_90_dias')
+            with col4:
+                st.metric("60 a 90 dias", vencer_60_90)
 
         # Exibir gráfico de barras
         with col2:

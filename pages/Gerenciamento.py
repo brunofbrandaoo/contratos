@@ -40,7 +40,7 @@ def add_contract_dialog():
     vig_inicio = st.date_input("Vigência Início")
     vig_fim = st.date_input("Vigência Fim")
     prazo_limite = vig_fim - timedelta(days=60)
-    prox_passo = st.text_input("Próximo Passo")
+    prox_passo = st.text_area("Próximo Passo")
 
     # Novos campos com selectbox
     modalidade = st.selectbox("Modalidade", ["dispensa", "inegibilidade", "pregao", "concorrencia", "Adesão a Ata"])
@@ -51,8 +51,8 @@ def add_contract_dialog():
     itens = st.text_input("Itens") 
     quantidade = st.number_input("Quantidade de itens", step=1)
     # Novos campos de observacao e acompanhamento
-    observacao = st.text_input("Observação")
-    acompanhamento = st.text_input("Acompanhamento")
+    observacao = st.text_area("Observação")
+    acompanhamento = st.text_area("Acompanhamento")
     gestor = st.text_input("Gestor")
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")
@@ -141,13 +141,13 @@ def edit_contract_dialog(contract):
     novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
     nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
     # Novos campos de observacao e acompanhamento
-    nova_observacao = st.text_input("Observação", value=observacao, key=f"observacao_{id}")
-    novo_acompanhamento = st.text_input("Acompanhamento", value=acompanhamento, key=f"acompanhamento_{id}")
+    nova_observacao = st.text_area("Observação", value=observacao, key=f"observacao_{id}")
+    novo_acompanhamento = st.text_area("Acompanhamento", value=acompanhamento, key=f"acompanhamento_{id}")
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
 
-    novo_prox_passo = st.text_input("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
+    novo_prox_passo = st.text_area("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
 
     novos_dias_vencer = (novo_vig_fim - datetime.today().date()).days
 
@@ -175,8 +175,6 @@ def show_gerenciar_contratos():
             st.session_state.show_add_contract_dialog = True
             add_contract_dialog()
 
-    # Campo de pesquisa
-    st.write("## Pesquisa de Contratos")
     pesquisa_numero = st.text_input("Pesquisar Número do Contrato")
 
     # Botão de pesquisa
