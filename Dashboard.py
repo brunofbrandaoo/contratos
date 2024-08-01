@@ -51,7 +51,7 @@ def show_dashboard():
         # Exibir link buttons do dashboard com contadores em HTML e CSS
         buttons_html = f"""
         <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-            <a href="/total_contracts" style="text-decoration: none;">
+            <a href="/planilha" style="text-decoration: none;">
                 <div style="background-color: #28a745; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Total Contratos</div>
                     <div style="font-size: 24px;">{total}</div>
