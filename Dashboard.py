@@ -57,7 +57,7 @@ def show_dashboard():
                     <div style="font-size: 24px;">{total}</div>
                 </div>
             </a>
-            <a href="/renovar" style="text-decoration: none;">
+            <a href="/spreadsheets/Contratos_para_renovar" style="text-decoration: none;">
                 <div style="background-color: #dc3545; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Renovar - até 30 dias</div>
                     <div style="font-size: 24px;">{renovar}</div>

@@ -4,7 +4,7 @@ from db import get_contracts
 from datetime import datetime
 
 # Configura o layout para wide (largura total da página)
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 def show_renovar():
     st.title('Contratos a Renovar')
@@ -27,7 +27,7 @@ def show_renovar():
                         contract[11], contract[12]
                     )
                 )
-        
+
         df = pd.DataFrame(
             renovar, 
             columns=[

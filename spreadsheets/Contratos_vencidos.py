@@ -4,7 +4,7 @@ from db import get_contracts
 from datetime import datetime
 
 # Configura o layout para wide (largura total da página)
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 def show_contratos_vencidos():
     st.title('Contratos Vencidos')

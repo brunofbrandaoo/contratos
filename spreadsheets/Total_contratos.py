@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import os
 
 # Configura o layout para wide (largura total da página)
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
@@ -265,7 +265,7 @@ def show_planilha():
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
-            link_detalhes = f"http://localhost:8501/planilha?page=details&contract_id={contract[0]}"
+            link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
