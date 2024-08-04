@@ -3,10 +3,19 @@ import pandas as pd
 import altair as alt
 from db import get_contracts
 from datetime import datetime
+import streamlit_shadcn_ui as ui
 
 #colocar container azul 90 a 180
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
+
+st.sidebar.header("Navegação")
+st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
+st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
+st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
@@ -51,19 +60,19 @@ def show_dashboard():
         # Exibir link buttons do dashboard com contadores em HTML e CSS
         buttons_html = f"""
         <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-            <a href="/planilha" style="text-decoration: none;">
+            <a href="/Planilhas" style="text-decoration: none;">
                 <div style="background-color: #28a745; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Total Contratos</div>
                     <div style="font-size: 24px;">{total}</div>
                 </div>
             </a>
-            <a href="/spreadsheets/Contratos_para_renovar" style="text-decoration: none;">
+            <a href="/Contratos_para_renovar" style="text-decoration: none;">
                 <div style="background-color: #dc3545; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Renovar - até 30 dias</div>
                     <div style="font-size: 24px;">{renovar}</div>
                 </div>
             </a>
-            <a href="/vencer_30_60" style="text-decoration: none;">
+            <a href="/Vencimento_30_a_60" style="text-decoration: none;">
                 <div style="background-color: #ff7f50; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Vencer em 30 a 60 Dias</div>
                     <div style="font-size: 24px;">{vencer_30_60}</div>
@@ -75,7 +84,7 @@ def show_dashboard():
                     <div style="font-size: 24px;">{vencer_60_90}</div>
                 </div>
             </a>
-            <a href="/contratos_vencidos" style="text-decoration: none;">
+            <a href="/Contratos_vencidos" style="text-decoration: none;">
                 <div style="background-color: #343a40; color: white; border-radius: 8px; width: 360px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <div>Contratos Vencidos</div>
                     <div style="font-size: 24px;">{vencido}</div>

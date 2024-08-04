@@ -4,23 +4,31 @@ from db import get_contracts
 from datetime import datetime
 
 # Configura o layout para wide (largura total da página)
-# st.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
 
-def show_contratos_vencidos():
-    st.title('Contratos Vencidos')
+st.sidebar.header("Navegação")
+st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
+st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
+st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
+
+def show_vencer_30_60():
+    st.title('Contratos a Vencer em 30 a 60 Dias')
 
     # Obter dados dos contratos
     contracts = get_contracts()
 
     if contracts:
         today = datetime.today().date()
-        vencidos = []
+        vencer_30_60 = []
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
-            if situacao_calculada == 'Vencido':
-                vencidos.append(
+            if situacao_calculada == 'Vencer 30 a 60 dias':
+                vencer_30_60.append(
                     (
                         contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
                         contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
@@ -29,14 +37,14 @@ def show_contratos_vencidos():
                 )
         
         df = pd.DataFrame(
-            vencidos, 
+            vencer_30_60, 
             columns=[
                 'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
                 'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
             ]
         )
-        st.write("## Contratos Vencidos")
+        st.write("## Contratos a Vencer em 30 a 60 Dias")
         st.dataframe(df)
     else:
         st.write("Nenhum contrato encontrado.")
@@ -54,5 +62,5 @@ def calculate_situation(dias_vencer):
     else:
         return 'Vigente'
 
-# Chama a função show_contratos_vencidos
-show_contratos_vencidos()
+# Chama a função show_vencer_30_60
+show_vencer_30_60()

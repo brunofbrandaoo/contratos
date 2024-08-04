@@ -7,7 +7,14 @@ from datetime import datetime, timedelta
 import os
 
 # Configura o layout para wide (largura total da página)
-# st.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
+st.sidebar.header("Navegação")
+st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
+st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
+st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
