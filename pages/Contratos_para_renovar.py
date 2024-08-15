@@ -28,24 +28,43 @@ def show_renovar():
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Renovar':
+                link_detalhes = f"?page=details&contract_id={contract[0]}"
                 renovar.append(
                     (
-                        contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
-                        contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12]
+                        contract[2], contract[3], contract[4], 
+                        contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
+                        contract[11], contract[12], link_detalhes
                     )
                 )
 
         df = pd.DataFrame(
             renovar, 
             columns=[
-                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
-                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
+                'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
+                'Aditivo', 'Movimentação', 'Detalhes'
             ]
         )
-        st.write("## Contratos a Renovar")
-        st.dataframe(df)
+
+        # Aplicar cor vermelha para todas as células da coluna Situação onde a situação é "Renovar"
+        def color_situation(val):
+            color = 'background-color: red; color: white' if val == 'Renovar' else ''
+            return color
+
+        styled_df = df.style.applymap(color_situation, subset=['Situação'])
+
+        # Configurar a coluna de links
+        st.dataframe(
+            styled_df,
+            column_config={
+                "Detalhes": st.column_config.LinkColumn(
+                    "Detalhes",
+                    help="Clique para ver os detalhes do contrato",
+                    display_text="Detalhar"
+                )
+            },
+            hide_index=True,
+        )
     else:
         st.write("Nenhum contrato encontrado.")
 
