@@ -15,56 +15,38 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
-def show_contratos_vencidos():
-    st.title('Contratos Vencidos')
+def show_vencer_30_60():
+    st.title('Contratos a Vencer em 60 a 90 Dias')
 
     # Obter dados dos contratos
     contracts = get_contracts()
 
     if contracts:
         today = datetime.today().date()
-        vencidos = []
+        vencer_30_60 = []
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
-            if situacao_calculada == 'Vencido':
-                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
-                vencidos.append(
+            if situacao_calculada == 'Vencer 60 a 90 dias':
+                vencer_30_60.append(
                     (
-                        contract[2], contract[3], contract[4], 
-                        contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12], link_detalhes
+                        contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
+                        contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
+                        contract[11], contract[12]
                     )
                 )
         
         df = pd.DataFrame(
-            vencidos, 
+            vencer_30_60, 
             columns=[
-                'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
-                'Aditivo', 'Movimentação', 'Detalhes'
+                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
+                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
             ]
         )
-
-        # Aplicar cor preta para todas as células da coluna Situação
-        def color_situation(val):
-            return 'background-color: black; color: white'
-
-        styled_df = df.style.applymap(color_situation, subset=['Situação'])
-        
-        # Configurar a coluna de links
-        st.dataframe(
-            styled_df,
-            column_config={
-                "Detalhes": st.column_config.LinkColumn(
-                    "Detalhes",
-                    help="Clique para ver os detalhes do contrato",
-                    display_text="Detalhar"
-                )
-            },
-            hide_index=True,
-        )
+        st.write("## Contratos a Vencer em 30 a 60 Dias")
+        st.dataframe(df)
     else:
         st.write("Nenhum contrato encontrado.")
 
@@ -72,14 +54,16 @@ def show_contratos_vencidos():
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
         return 'Vencido'
-    elif dias_vencer <= 30:
+    elif 30 <= dias_vencer <= 60:
         return 'Renovar'
-    elif dias_vencer <= 60:
-        return 'Vencer 30 a 60 dias'
-    elif dias_vencer <= 90:
+    elif 60 <= dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
+    elif 90 <= dias_vencer <= 120:
+        return 'Vencer 90 a 120 dias'
+    elif 120 <= dias_vencer <= 180:
+        return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
 
-# Chama a função show_contratos_vencidos
-show_contratos_vencidos()
+# Chama a função show_vencer_30_60
+show_vencer_30_60()

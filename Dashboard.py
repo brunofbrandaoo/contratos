@@ -11,21 +11,24 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
-st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
-st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
+st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
         return 'Vencido'
-    elif dias_vencer <= 30:
+    elif 30 <= dias_vencer <= 60:
         return 'Renovar'
-    elif dias_vencer <= 60:
-        return 'Vencer 30 a 60 dias'
-    elif dias_vencer <= 90:
+    elif 60 <= dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
+    elif 90 <= dias_vencer <= 120:
+        return 'Vencer 90 a 120 dias'
+    elif 120 <= dias_vencer <= 180:
+        return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
 
@@ -33,18 +36,20 @@ def calculate_situation(dias_vencer):
 def calculate_dashboard_data(contracts):
     total = len(contracts)
     vencido = sum(1 for contract in contracts if contract[11] == 'Vencido')
-    renovar = sum(1 for contract in contracts if contract[11] == 'Renovar')
     vencer_30_60 = sum(1 for contract in contracts if contract[11] == 'Vencer 30 a 60 dias')
     vencer_60_90 = sum(1 for contract in contracts if contract[11] == 'Vencer 60 a 90 dias')
-    vigente = total - (vencido + renovar + vencer_30_60 + vencer_60_90)
+    vencer_90_120 = sum(1 for contract in contracts if contract[11] == 'Vencer 90 a 120 dias')
+    vencer_120_180 = sum(1 for contract in contracts if contract[11] == 'Vencer 120 a 180 dias')
+    vigente = total - (vencido + vencer_30_60 + vencer_60_90 + vencer_90_120 + vencer_120_180)
     
     vencido_percent = (vencido / total) * 100 if total else 0
-    renovar_percent = (renovar / total) * 100 if total else 0
     vencer_30_60_percent = (vencer_30_60 / total) * 100 if total else 0
     vencer_60_90_percent = (vencer_60_90 / total) * 100 if total else 0
+    vencer_90_120_percent = (vencer_90_120 / total) * 100 if total else 0
+    vencer_120_180_percent = (vencer_120_180 / total) * 100 if total else 0
     vigente_percent = (vigente / total) * 100 if total else 0
     
-    return total, vencido, renovar, vencer_30_60, vencer_60_90, vigente, vencido_percent, renovar_percent, vencer_30_60_percent, vencer_60_90_percent, vigente_percent
+    return total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent
 
 def show_dashboard():
     st.markdown("<h1 style='text-align: center; margin-bottom: 48px;'>Gestão de Vigência de Contratos</h1>", unsafe_allow_html=True)
@@ -54,7 +59,7 @@ def show_dashboard():
     if contracts:
         today = datetime.today().date()
         contracts = [(contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], contract[9], (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, calculate_situation((datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days)) for contract in contracts]
-        total, vencido, renovar, vencer_30_60, vencer_60_90, vigente, vencido_percent, renovar_percent, vencer_30_60_percent, vencer_60_90_percent, vigente_percent = calculate_dashboard_data(contracts)
+        total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
         # Configuração de colunas
         col1, col2 = st.columns([1, 1])
@@ -64,31 +69,37 @@ def show_dashboard():
             buttons_html = f"""
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <a href="/Total_contratos" style="text-decoration: none;">
-                    <div style="background-color: #28a745; color: white; border-radius: 8px; width: 240px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Total Contratos</div>
-                        <div style="font-size: 24px;">{total}</div>
+                    <div style="background-color: #d3d3d3; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div style="font-size: 24px;">Total Contratos</div>
+                        <div style="font-size: 32px;">{total}</div>
                     </div>
                 </a>
-                <a href="/Contratos_para_renovar" style="text-decoration: none;">
-                    <div style="background-color: #dc3545; color: white; border-radius: 8px; width: 240px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Renovar - até 30 dias</div>
-                        <div style="font-size: 24px;">{renovar}</div>
-                    </div>
-                </a>
-                <a href="/Vencimento_30_a_60" style="text-decoration: none;">
-                    <div style="background-color: #ff7f50; color: white; border-radius: 8px; width: 240px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencer em 30 a 60 Dias</div>
+                <a href="/Vencer_30_60" style="text-decoration: none;">
+                    <div style="background-color: #ff0000; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div>Vencem em 30 a 60 dias</div>
                         <div style="font-size: 24px;">{vencer_30_60}</div>
                     </div>
                 </a>
-                <a href="/vencer_60_90" style="text-decoration: none;">
-                    <div style="background-color: #ffc107; color: white; border-radius: 8px; width: 240px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencer em 60 a 90 Dias</div>
+                <a href="/Vencimento_60_a_90" style="text-decoration: none;">
+                    <div style="background-color: #ff7f50; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div>Vencem em 60 a 90 Dias</div>
                         <div style="font-size: 24px;">{vencer_60_90}</div>
                     </div>
                 </a>
+                <a href="/vencer_90_120" style="text-decoration: none;">
+                    <div style="background-color: #ffc107; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div>Vencem em 90 a 120 dias</div>
+                        <div style="font-size: 24px;">{vencer_90_120}</div>
+                    </div>
+                </a>
+                <a href="/vencer_120_180" style="text-decoration: none;">
+                    <div style="background-color: #add8e6; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div>Vencem em 120 a 180 Dias</div>
+                        <div style="font-size: 24px;">{vencer_120_180}</div>
+                    </div>
+                </a>
                 <a href="/Contratos_vencidos" style="text-decoration: none;">
-                    <div style="background-color: #343a40; color: white; border-radius: 8px; width: 240px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: #343a40; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                         <div>Contratos Vencidos</div>
                         <div style="font-size: 24px;">{vencido}</div>
                     </div>
@@ -100,14 +111,14 @@ def show_dashboard():
         with col2:
             # Exibir gráfico de barras
             df = pd.DataFrame({
-                'Situação': ['Vencido', 'Renovar', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vigente'],
-                'Quantidade': [vencido, renovar, vencer_30_60, vencer_60_90, vigente]
+                'Situação': ['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                'Quantidade': [vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente]
             })
 
             # Mapa de cores
             color_scale = alt.Scale(
-                domain=['Vencido', 'Renovar', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vigente'],
-                range=['#000000', '#dc3545', '#ff7f50', '#ffc107', '#28a745']
+                domain=['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                range=['#343a40', '#ff0000', '#ff7f50', '#ffc107', '#add8e6', '#d3d3d3']
             )
 
             # Criar o gráfico de barras
@@ -144,8 +155,6 @@ def show_dashboard():
             numero_contrato_4 = contracts_sorted_by_days[3][2]
             dias_a_vencer_4 = contracts_sorted_by_days[3][-2]
 
-            numero_contrato_5 = contracts_sorted_by_days[4][2]
-            dias_a_vencer_5 = contracts_sorted_by_days[4][-2]
 
             # Exibir os valores em uma lista HTML e CSS estilizada
             list_html = f"""
@@ -163,9 +172,6 @@ def show_dashboard():
                     </li>
                     <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                         <strong>Contrato:</strong> {numero_contrato_4} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_4}
-                    </li>
-                    <li style="padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_5} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_5}
                     </li>
                 </ul>
             </div>

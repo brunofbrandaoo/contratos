@@ -9,12 +9,13 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
-st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
-st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
+st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
-def show_renovar():
+def show_vencer_30_60():
     st.title('Contratos a Renovar')
 
     # Obter dados dos contratos
@@ -28,7 +29,7 @@ def show_renovar():
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Renovar':
-                link_detalhes = f"?page=details&contract_id={contract[0]}"
+                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
                 renovar.append(
                     (
                         contract[2], contract[3], contract[4], 
@@ -72,14 +73,16 @@ def show_renovar():
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
         return 'Vencido'
-    elif dias_vencer <= 30:
+    elif 30 <= dias_vencer <= 60:
         return 'Renovar'
-    elif dias_vencer <= 60:
-        return 'Vencer 30 a 60 dias'
-    elif dias_vencer <= 90:
+    elif 60 <= dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
+    elif 90 <= dias_vencer <= 120:
+        return 'Vencer 90 a 120 dias'
+    elif 120 <= dias_vencer <= 180:
+        return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
 
 # Chama a função show_renovar
-show_renovar()
+show_vencer_30_60()

@@ -11,9 +11,10 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Contratos_para_renovar.py", label="Contratos para renovar", icon="🟥")
-st.sidebar.page_link("pages/Vencimento_30_a_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟧")
-st.sidebar.page_link("pages/vencer_60_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟨")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
+st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
+st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 # Função para calcular a situação do contrato
@@ -32,10 +33,11 @@ def calculate_situation(dias_vencer):
 # Função para aplicar cores com base na situação
 def color_situation(val):
     color = {
-        'Vencido': '#000000',
-        'Renovar': '#dc3545',
-        'Vencer 30 a 60 dias': '#ff7f50',
-        'Vencer 60 a 90 dias': '#ffc107',
+        'Vencido': '#343a40',
+        'Renovar': '#ff0000',
+        'Vencer 60 a 90 dias': '#ff6600',
+        'Vencer 90 a 120 dias': '#ffff00',
+        'Vencer 120 a 180 dias': '#add8e6',
         'Vigente': '#28a745'
     }.get(val, '')
     return f'background-color: {color}; color: white'
@@ -195,29 +197,81 @@ def contract_details_page(contract_id):
             dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
             quantidade, gestor, contato, setor, observacao, acompanhamento
         ) = contract
-        st.write(f"**Detalhes do Contrato:** {numero_contrato}")
-        st.write(f"**Fornecedor do Contrato:** {fornecedor}")
-        st.write(f"**Objeto:** {objeto}")
-        st.write(f"**Situação:** {situacao}")
-        st.write(f"**Valor do Contrato:** {valor_contrato}")
-        st.write(f"**Vigência Início:** {vig_inicio}")
-        st.write(f"**Vigência Fim:** {vig_fim}")
-        st.write(f"**Prazo Limite:** {prazo_limite}")
-        st.write(f"**Aditivo:** {aditivo}")
-        st.write(f"**Próximo Passo:** {prox_passo}")
-        # Exibir novos campos
-        st.write(f"**Modalidade:** {modalidade}")
-        st.write(f"**Amparo Legal:** {amparo_legal}")
-        st.write(f"**Categoria:** {categoria}")
-        st.write(f"**Data de Assinatura:** {data_assinatura}")
-        st.write(f"**Data de Publicação:** {data_publicacao}")
-        st.write(f"**Itens:** {itens}")
-        st.write(f"**Quantidade:** {quantidade}")
-        st.write(f"**Observação:** {observacao}")
-        st.write(f"**Acompanhamento:** {acompanhamento}")
-        st.write(f"**Gestor:** {gestor}")
-        st.write(f"**Contato:** {contato}")
-        st.write(f"**Setor:** {setor}")
+        st.markdown(f"""
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+    <h2 style="color: #343a40; text-align: center; margin-bottom: 20px;">Detalhes do Contrato {numero_contrato}</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Número do Contrato:</strong> {numero_contrato}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Fornecedor:</strong> {fornecedor}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Objeto:</strong> {objeto}
+        </div>
+        <div style="{color_situation(situacao)}; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Situação:</strong> {situacao}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Valor do Contrato:</strong> {valor_contrato}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Vigência Início:</strong> {vig_inicio}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Vigência Fim:</strong> {vig_fim}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Prazo Limite:</strong> {prazo_limite}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Aditivo:</strong> {aditivo}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Próximo Passo:</strong> {prox_passo}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Modalidade:</strong> {modalidade}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Amparo Legal:</strong> {amparo_legal}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Categoria:</strong> {categoria}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Data de Assinatura:</strong> {data_assinatura}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Data de Publicação:</strong> {data_publicacao}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Itens:</strong> {itens}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Quantidade:</strong> {quantidade}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Observação:</strong> {observacao}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Acompanhamento:</strong> {acompanhamento}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Gestor:</strong> {gestor}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Contato:</strong> {contato}
+        </div>
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
+            <strong>Setor:</strong> {setor}
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
 
         # Botões na página de detalhes
         col1, col2, col3, col4 = st.columns(4)
