@@ -29,24 +29,25 @@ def show_vencer_120_180():
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Vencer 120 a 180 dias':
+                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
                 vencer_60_90.append(
                     (
-                        contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
+                        contract[2], contract[3], contract[4], contract[6], 
                         contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12]
+                        contract[11], contract[24], link_detalhes
                     )
                 )
         
         df = pd.DataFrame(
             vencer_60_90, 
             columns=[
-                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
-                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
+                'Dias a Vencer', 'Situação', 'Aditivo', 'Movimentação', 'Detalhar'
             ]
         )
         def color_situation(val):
-            return 'background-color: blue; color: white'
+            return 'background-color: #054f77; color: white'
 
         styled_df = df.style.applymap(color_situation, subset=['Situação'])
 
@@ -54,8 +55,8 @@ def show_vencer_120_180():
         st.dataframe(
             styled_df,
             column_config={
-                "Detalhes": st.column_config.LinkColumn(
-                    "Detalhes",
+                "Detalhar": st.column_config.LinkColumn(
+                    "Detalhar",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
                 )

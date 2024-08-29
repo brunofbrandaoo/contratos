@@ -15,7 +15,7 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
-def show_vencer_30_60():
+def show_vencer_60_90():
     st.title('Contratos a Vencer em 60 a 90 Dias')
 
     # Obter dados dos contratos
@@ -23,30 +23,31 @@ def show_vencer_30_60():
 
     if contracts:
         today = datetime.today().date()
-        vencer_30_60 = []
+        vencer_60_90 = []
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Vencer 60 a 90 dias':
-                vencer_30_60.append(
+                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
+                vencer_60_90.append(
                     (
-                        contract[0], contract[1], contract[2], contract[3], contract[4], contract[6], 
+                        contract[2], contract[3], contract[4], contract[6], 
                         contract[7], contract[8], contract[9], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12]
+                        contract[11], contract[24], link_detalhes
                     )
                 )
         
         df = pd.DataFrame(
-            vencer_30_60, 
+            vencer_60_90, 
             columns=[
-                'ID', 'Número do Processo', 'Número do Contrato', 'Fornecedor', 'Objeto', 
+                'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Prazo Limite', 
-                'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
+                'Dias a Vencer', 'Situação', 'Aditivo', 'Movimentação', 'Detalhar'
             ]
         )
         def color_situation(val):
-            return 'background-color: orange; color: white'
+            return 'background-color: #fe843d; color: white'
 
         styled_df = df.style.applymap(color_situation, subset=['Situação'])
 
@@ -54,8 +55,8 @@ def show_vencer_30_60():
         st.dataframe(
             styled_df,
             column_config={
-                "Detalhes": st.column_config.LinkColumn(
-                    "Detalhes",
+                "Detalhar": st.column_config.LinkColumn(
+                    "Detalhar",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
                 )
@@ -81,4 +82,4 @@ def calculate_situation(dias_vencer):
         return 'Vigente'
 
 # Chama a função show_vencer_30_60
-show_vencer_30_60()
+show_vencer_60_90()

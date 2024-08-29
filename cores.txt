@@ -1,0 +1,7 @@
+verde = #38761d
+vermelho = #ff0000
+laranja = #fe843d
+amarelo = #ffc107
+azul = #054f77
+preto = #343a40
+

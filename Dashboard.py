@@ -17,23 +17,19 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
-# st.logo(
-#     LOGO_URL_LARGE,
-#     link="logo_sudema.png",
-#     icon_image=LOGO_URL_SMALL,
-# )
+st.logo(image="sudema.png", link=None)
 
 # Função para calcular a situação do contrato
-def calculate_situation(dias_vencer):
-    if dias_vencer < 0:
+def calculate_situation(dias_vencer, passivel_renovacao):
+    if dias_vencer <= 0:
         return 'Vencido'
-    elif 30 <= dias_vencer <= 60:
-        return 'Renovar'
-    elif 60 <= dias_vencer <= 90:
+    elif dias_vencer <= 60:
+        return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
+    elif 60 < dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
-    elif 90 <= dias_vencer <= 120:
+    elif 90 < dias_vencer <= 120:
         return 'Vencer 90 a 120 dias'
-    elif 120 <= dias_vencer <= 180:
+    elif 120 < dias_vencer <= 180:
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
@@ -42,7 +38,7 @@ def calculate_situation(dias_vencer):
 def calculate_dashboard_data(contracts):
     total = len(contracts)
     vencido = sum(1 for contract in contracts if contract[11] == 'Vencido')
-    vencer_30_60 = sum(1 for contract in contracts if contract[11] == 'Vencer 30 a 60 dias')
+    vencer_30_60 = sum(1 for contract in contracts if contract[11] in ['Renovar', 'Novo Processo'])
     vencer_60_90 = sum(1 for contract in contracts if contract[11] == 'Vencer 60 a 90 dias')
     vencer_90_120 = sum(1 for contract in contracts if contract[11] == 'Vencer 90 a 120 dias')
     vencer_120_180 = sum(1 for contract in contracts if contract[11] == 'Vencer 120 a 180 dias')
@@ -64,7 +60,7 @@ def show_dashboard():
     contracts = get_contracts()
     if contracts:
         today = datetime.today().date()
-        contracts = [(contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], contract[9], (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, calculate_situation((datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days)) for contract in contracts]
+        contracts = [(contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], contract[9], (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, calculate_situation((datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, contract[10])) for contract in contracts]
         total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
         # Configuração de colunas
@@ -75,43 +71,56 @@ def show_dashboard():
             buttons_html = f"""
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <a href="/Total_contratos" style="text-decoration: none;">
-                    <div style="background-color: #90ee90; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: #38761d; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                         <div style="font-size: 24px;">Total Contratos</div>
-                        <div style="font-size: 32px;">{total}</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #38761d; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {total}
+                        </div>
                     </div>
                 </a>
                 <a href="/Vencer_30_60" style="text-decoration: none;">
                     <div style="background-color: #ff0000; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencem em 30 a 60 dias</div>
-                        <div style="font-size: 24px;">{vencer_30_60}</div>
+                        <div style="font-size: 24px;">Vencem em 30 a 60 dias</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #ff0000; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {vencer_30_60}
+                        </div>
                     </div>
                 </a>
                 <a href="/Vencimento_60_a_90" style="text-decoration: none;">
-                    <div style="background-color: #ff7f50; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencem em 60 a 90 Dias</div>
-                        <div style="font-size: 24px;">{vencer_60_90}</div>
+                    <div style="background-color: #fe843d; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div style="font-size: 24px;">Vencem em 60 a 90 Dias</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #fe843d; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {vencer_60_90}
+                        </div>
                     </div>
                 </a>
                 <a href="/vencer_90_120" style="text-decoration: none;">
                     <div style="background-color: #ffc107; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencem em 90 a 120 dias</div>
-                        <div style="font-size: 24px;">{vencer_90_120}</div>
+                        <div style="font-size: 24px;">Vencem em 90 a 120 dias</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #ffc107; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {vencer_90_120}
+                        </div>
                     </div>
                 </a>
                 <a href="/vencer_120_180" style="text-decoration: none;">
                     <div style="background-color: #054f77; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Vencem em 120 a 180 Dias</div>
-                        <div style="font-size: 24px;">{vencer_120_180}</div>
+                        <div style="font-size: 24px;">Vencem em 120 a 180 Dias</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #054f77; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {vencer_120_180}
+                        </div>
                     </div>
                 </a>
                 <a href="/Contratos_vencidos" style="text-decoration: none;">
                     <div style="background-color: #343a40; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div>Contratos Vencidos</div>
-                        <div style="font-size: 24px;">{vencido}</div>
+                        <div style="font-size: 24px;">Contratos Vencidos</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #343a40; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
+                            {vencido}
+                        </div>
                     </div>
                 </a>
             </div>
-            """
+"""
+
             st.markdown(buttons_html, unsafe_allow_html=True)
 
         with col2:
@@ -124,7 +133,7 @@ def show_dashboard():
             # Mapa de cores
             color_scale = alt.Scale(
                 domain=['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
-                range=['#343a40', '#ff0000', '#ff7f50', '#ffc107', '#add8e6', '#d3d3d3']
+                range=['#343a40', '#ff0000', '#fe843d', '#ffc107', '#054f77', '#38761d']
             )
 
             # Criar o gráfico de barras
@@ -143,8 +152,6 @@ def show_dashboard():
             # Exibir o gráfico no Streamlit
             st.altair_chart(chart, use_container_width=True)
 
-            # Filtrar contratos para renovar e ordenar por dias a vencer
-
             # Ordenando os contratos com base no penúltimo elemento (dias a vencer)
             contracts_sorted_by_days = sorted(contracts, key=lambda x: x[-2])
 
@@ -157,10 +164,6 @@ def show_dashboard():
 
             numero_contrato_3 = contracts_sorted_by_days[2][2]
             dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
-
-            # numero_contrato_4 = contracts_sorted_by_days[3][2]
-            # dias_a_vencer_4 = contracts_sorted_by_days[3][-2]
-
 
             # Exibir os valores em uma lista HTML e CSS estilizada
             list_html = f"""

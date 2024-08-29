@@ -34,7 +34,7 @@ def show_contratos_vencidos():
                     (
                         contract[2], contract[3], contract[4], 
                         contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12], link_detalhes
+                        contract[11], contract[24], link_detalhes
                     )
                 )
         
@@ -43,7 +43,7 @@ def show_contratos_vencidos():
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
-                'Aditivo', 'Movimentação', 'Detalhes'
+                'Aditivo', 'Movimentação', 'Detalhar'
             ]
         )
 
@@ -57,8 +57,8 @@ def show_contratos_vencidos():
         st.dataframe(
             styled_df,
             column_config={
-                "Detalhes": st.column_config.LinkColumn(
-                    "Detalhes",
+                "Detalhar": st.column_config.LinkColumn(
+                    "Detalhar",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
                 )

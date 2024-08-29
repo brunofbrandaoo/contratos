@@ -18,16 +18,16 @@ st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento 
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 # Função para calcular a situação do contrato
-def calculate_situation(dias_vencer):
-    if dias_vencer == 0:
+def calculate_situation(dias_vencer, passivel_renovacao):
+    if dias_vencer <= 0:
         return 'Vencido'
     elif dias_vencer <= 60:
-        return 'Renovar'
-    elif 60 <= dias_vencer <= 90:
+        return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
+    elif 60 < dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
-    elif 90 <= dias_vencer <= 120:
+    elif 90 < dias_vencer <= 120:
         return 'Vencer 90 a 120 dias'
-    elif 120 <= dias_vencer <= 180:
+    elif 120 < dias_vencer <= 180:
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
@@ -37,10 +37,11 @@ def color_situation(val):
     color = {
         'Vencido': '#343a40',
         'Renovar': '#ff0000',
-        'Vencer 60 a 90 dias': '#ff6600',
-        'Vencer 90 a 120 dias': '#ffff00',
-        'Vencer 120 a 180 dias': '#add8e6',
-        'Vigente': '#28a745'
+        'Novo Processo': '#ff0000',  # Adiciona a mesma cor para "Novo Processo"
+        'Vencer 60 a 90 dias': '#fe843d',
+        'Vencer 90 a 120 dias': '#ffc107',
+        'Vencer 120 a 180 dias': '#054f77',
+        'Vigente': '#38761d'
     }.get(val, '')
     return f'background-color: {color}; color: white'
 
@@ -79,9 +80,9 @@ def add_contract_dialog():
     data_publicacao = st.date_input("Data de Publicação")
     itens = st.text_input("Itens") 
     quantidade = st.number_input("Quantidade de itens", min_value=0, step=1)
-    # Novos campos de observacao e acompanhamento
+    # Novos campos de observacao e movimentacao
     observacao = st.text_area("Observação")
-    acompanhamento = st.text_area("Movimentação")
+    movimentacao = st.text_area("Movimentação")
     gestor = st.text_input("Gestor")
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")
@@ -93,15 +94,14 @@ def add_contract_dialog():
             st.error("A quantidade de itens não pode ser negativa.")
         else:
             dias_vencer = (vig_fim - datetime.today().date()).days
-            situacao_calculada = calculate_situation(dias_vencer)
+            situacao_calculada = calculate_situation(dias_vencer, passivel_renovacao)
             add_contract(
                 numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, 
                 prazo_limite, dias_vencer, 0, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, 
-                itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao
+                itens, quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
             )
             st.session_state.show_add_contract_dialog = False
             st.rerun()
-
 
 @st.experimental_dialog(title="Adicionar Aditivo")
 def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contrato_atual):
@@ -151,7 +151,7 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 contract[21],  # contato
                 contract[22],  # setor
                 contract[23],  # observacao
-                contract[24],  # acompanhamento
+                contract[24],  # movimentacao
                 contract[25]   # passivel_renovacao
             )
             
@@ -167,7 +167,7 @@ def edit_contract_dialog(contract):
     (
         id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
         dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
-        quantidade, gestor, contato, setor, observacao, acompanhamento
+        quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
     ) = contract
     st.write(f"**Editando Contrato:** {numero_contrato}")
     novo_numero_processo = st.text_input("Número do Processo", value=numero_processo, key=f"numero_processo_{id}")
@@ -188,9 +188,9 @@ def edit_contract_dialog(contract):
     nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
     novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
     nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
-    # Novos campos de observacao e acompanhamento
+    # Novos campos de observacao e movimentacao
     nova_observacao = st.text_area("Observação", value=observacao, key=f"observacao_{id}")
-    novo_acompanhamento = st.text_area("Acompanhamento", value=acompanhamento, key=f"acompanhamento_{id}")
+    novo_movimentacao = st.text_area("movimentacao", value=movimentacao, key=f"movimentacao_{id}")
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
@@ -200,11 +200,11 @@ def edit_contract_dialog(contract):
     novos_dias_vencer = (novo_vig_fim - datetime.today().date()).days
 
     if st.button("Salvar Alterações", key=f"salvar_{id}"):
-        situacao_calculada = calculate_situation(novos_dias_vencer)
+        situacao_calculada = calculate_situation(novos_dias_vencer, passivel_renovacao)
         update_contract(
             id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, 
             novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
-            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_acompanhamento
+            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_movimentacao
         )
         st.success("Contrato atualizado com sucesso!")
         st.session_state.show_edit_contract_dialog = False
@@ -239,7 +239,7 @@ def contract_details_page(contract_id):
         (
             id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
             dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
-            data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao
+            data_publicacao, itens, quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
         ) = contract
 
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
@@ -270,7 +270,7 @@ def contract_details_page(contract_id):
             <strong>Vigência Fim:</strong> {vig_fim}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Prazo Limite:</strong> {prazo_limite} anos
+            <strong>Prazo Limite (anos):</strong> {prazo_limite}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
             <strong>Aditivo:</strong> {aditivo}
@@ -303,7 +303,7 @@ def contract_details_page(contract_id):
             <strong>Observação:</strong> {observacao}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Acompanhamento:</strong> {acompanhamento}
+            <strong>movimentacao:</strong> {movimentacao}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
             <strong>Gestor:</strong> {gestor}
@@ -374,13 +374,14 @@ def show_planilha():
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
-            situacao_calculada = calculate_situation(dias_a_vencer)
+            passivel_renovacao = contract[25]  # Considerando que 'passivel_renovacao' esteja na posição 25
+            situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
                     contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                    contract[11], contract[12], link_detalhes
+                    contract[11], contract[24], link_detalhes
                 )
             )
         

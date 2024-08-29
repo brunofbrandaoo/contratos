@@ -17,7 +17,6 @@ st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", 
 
 def show_vencer_30_60():
     st.title('Contratos com vencimento de 30 a 60 dias')
-
     # Obter dados dos contratos
     contracts = get_contracts()
 
@@ -27,14 +26,18 @@ def show_vencer_30_60():
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
-            situacao_calculada = calculate_situation(dias_a_vencer)
-            if situacao_calculada == 'Renovar':
+            passivel_renovacao = contract[10]  # Supondo que o campo `passivel_renovacao` esteja na posição 10
+
+            # Calcula a situação considerando o campo passível de renovação
+            situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
+
+            if situacao_calculada in ['Renovar', 'Novo Processo']:
                 link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
                 renovar.append(
                     (
                         contract[2], contract[3], contract[4], 
                         contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[12], link_detalhes
+                        contract[11], contract[24], link_detalhes
                     )
                 )
 
@@ -43,13 +46,13 @@ def show_vencer_30_60():
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
                 'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
-                'Aditivo', 'Movimentação', 'Detalhes'
+                'Aditivo', 'Movimentação', 'Detalhar'
             ]
         )
 
-        # Aplicar cor vermelha para todas as células da coluna Situação onde a situação é "Renovar"
+        # Aplicar cor vermelha para todas as células da coluna Situação onde a situação é "Renovar" ou "Novo Processo"
         def color_situation(val):
-            color = 'background-color: red; color: white' if val == 'Renovar' else ''
+            color = 'background-color: red; color: white' if val in ['Renovar', 'Novo Processo'] else ''
             return color
 
         styled_df = df.style.applymap(color_situation, subset=['Situação'])
@@ -58,8 +61,8 @@ def show_vencer_30_60():
         st.dataframe(
             styled_df,
             column_config={
-                "Detalhes": st.column_config.LinkColumn(
-                    "Detalhes",
+                "Detalhar": st.column_config.LinkColumn(
+                    "Detalhar",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
                 )
@@ -69,12 +72,12 @@ def show_vencer_30_60():
     else:
         st.write("Nenhum contrato encontrado.")
 
-# Função para calcular a situação do contrato
-def calculate_situation(dias_vencer):
+# Função para calcular a situação do contrato considerando o campo passível de renovação
+def calculate_situation(dias_vencer, passivel_renovacao):
     if dias_vencer < 0:
         return 'Vencido'
-    elif 30 <= dias_vencer <= 60:
-        return 'Renovar'
+    elif 1 < dias_vencer <= 60:
+        return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
     elif 60 <= dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
     elif 90 <= dias_vencer <= 120:
@@ -84,5 +87,5 @@ def calculate_situation(dias_vencer):
     else:
         return 'Vigente'
 
-# Chama a função show_renovar
+# Chama a função show_vencer_30_60
 show_vencer_30_60()
