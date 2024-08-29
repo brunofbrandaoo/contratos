@@ -2,7 +2,7 @@
 
 import pandas as pd
 import streamlit as st
-from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id
+from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
 from datetime import datetime, timedelta
 import os
 
@@ -104,51 +104,60 @@ def add_contract_dialog():
 
 
 @st.experimental_dialog(title="Adicionar Aditivo")
-def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual):
+def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contrato_atual):
     st.write(f"**Adicionar Aditivo ao Contrato:** {numero_contrato}")
+    
     novo_vig_fim = st.date_input("Nova Data Final", value=datetime.strptime(vig_fim_atual, '%Y-%m-%d').date())
+    novo_valor_contrato = st.number_input("Novo Valor do Contrato", value=float(valor_contrato_atual), format="%.2f")
+    data_aditivo = st.date_input("Data do Aditivo", value=datetime.today())
     
     if st.button("Salvar Aditivo"):
-        today = datetime.today().date()
-        dias_vencer = (novo_vig_fim - today).days
-        situacao_calculada = calculate_situation(dias_vencer)
         contract = get_contract_by_id(contract_id)
         if contract:
-            (
-                id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, 
-                prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
-                data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento
-            ) = contract
+            try:
+                aditivo = contract[11]  # Assumindo que o índice 11 corresponde ao campo 'aditivo'
+                novo_aditivo = int(aditivo) + 1 if aditivo and aditivo.isdigit() else 1
+            except (ValueError, AttributeError):
+                novo_aditivo = 1
+                st.warning(f"Valor inválido para aditivo: {aditivo}. Definindo como 1.")
             
-            novo_aditivo = int(aditivo) + 1 if aditivo.isdigit() else 1
+            # Calcular novos dias a vencer
+            hoje = datetime.today().date()
+            novos_dias_vencer = (novo_vig_fim - hoje).days
             
+            # Atualizar o contrato
             update_contract(
-                id,
-                numero_processo,
-                numero_contrato,
-                fornecedor,
-                objeto,
-                situacao_calculada,
-                valor_contrato,
-                vig_inicio,
+                contract_id,
+                contract[1],  # numero_processo
+                contract[2],  # numero_contrato
+                contract[3],  # fornecedor
+                contract[4],  # objeto
+                calculate_situation(novos_dias_vencer),  # nova situação
+                novo_valor_contrato,
+                contract[7],  # vig_inicio
                 novo_vig_fim,
-                prazo_limite,
-                dias_vencer,
-                novo_aditivo,
-                prox_passo,
-                modalidade,
-                amparo_legal,
-                categoria,
-                data_assinatura,
-                data_publicacao,
-                itens,
-                quantidade,
-                gestor,
-                contato,
-                setor,
-                observacao,
-                acompanhamento
+                contract[9],  # prazo_limite
+                novos_dias_vencer,
+                str(novo_aditivo),
+                contract[12],  # prox_passo
+                contract[13],  # modalidade
+                contract[14],  # amparo_legal
+                contract[15],  # categoria
+                contract[16],  # data_assinatura
+                contract[17],  # data_publicacao
+                contract[18],  # itens
+                contract[19],  # quantidade
+                contract[20],  # gestor
+                contract[21],  # contato
+                contract[22],  # setor
+                contract[23],  # observacao
+                contract[24],  # acompanhamento
+                contract[25]   # passivel_renovacao
             )
+            
+            # Adicionar o novo aditivo
+            add_aditivo(contract_id, novo_aditivo, novo_vig_fim, novo_valor_contrato, data_aditivo)
+            
             st.success("Aditivo adicionado com sucesso!")
             st.session_state.show_add_aditivo_dialog = False
             st.rerun()
@@ -165,7 +174,7 @@ def edit_contract_dialog(contract):
     novo_numero_contrato = st.text_input("Número do Contrato", value=numero_contrato, key=f"numero_contrato_{id}")
     novo_fornecedor = st.text_input("Fornecedor do Contrato", value=fornecedor, key=f"fornecedor_{id}")
     novo_objeto = st.text_input("Objeto", value=objeto, key=f"objeto_{id}")
-    novo_valor_contrato = st.number_input("Valor do Contrato", value=valor_contrato, step=0.01, key=f"valor_contrato_{id}")
+    novo_valor_contrato = st.number_input("Valor do Contrato", value=valor_contrato, step=1000.00, min_value=0.0, key=f"valor_contrato_{id}")
     novo_vig_inicio = st.date_input("Vigência Início", value=datetime.strptime(vig_inicio, "%Y-%m-%d").date(), key=f"vig_inicio_{id}")
     novo_vig_fim = st.date_input("Vigência Fim", value=datetime.strptime(vig_fim, "%Y-%m-%d").date(), key=f"vig_fim_{id}")
     novo_prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5], index=prazo_limite - 1, key=f"prazo_limite_{id}")
@@ -201,20 +210,46 @@ def edit_contract_dialog(contract):
         st.session_state.show_edit_contract_dialog = False
         st.rerun()
 
+def show_aditivo_details(contract_id):
+    aditivos = get_aditivos(contract_id)
+    if aditivos:
+        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background-color: #e9ecef; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #495057; text-align: center; margin-bottom: 20px;">Detalhes dos Aditivos</h3>
+        """, unsafe_allow_html=True)
+
+        for aditivo in aditivos:
+            st.markdown(f"""
+            <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                <strong>Número do Aditivo:</strong> {aditivo[2]}<br>
+                <strong>Nova Data de Vigência:</strong> {aditivo[3]}<br>
+                <strong>Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}<br>
+                <strong>Data do Aditivo:</strong> {aditivo[5]}
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.info("Este contrato ainda não possui aditivos.")
+
 def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
     if contract:
         (
             id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
-            dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
-            quantidade, gestor, contato, setor, observacao, acompanhamento
+            dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
+            data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao
         ) = contract
+
+        passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
+
         st.markdown(f"""
 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
     <h2 style="color: #343a40; text-align: center; margin-bottom: 20px;">Detalhes do Contrato {numero_contrato}</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Número do Contrato:</strong> {numero_contrato}
+            <strong style="font-size: 24px;">Número do Contrato:</strong> {numero_contrato}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
             <strong>Fornecedor:</strong> {fornecedor}
@@ -226,10 +261,10 @@ def contract_details_page(contract_id):
             <strong>Situação:</strong> {situacao}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Valor do Contrato:</strong> {valor_contrato}
+            <strong>Vigência Início:</strong> {vig_inicio}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Vigência Início:</strong> {vig_inicio}
+            <strong>Valor do Contrato:</strong> {valor_contrato}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
             <strong>Vigência Fim:</strong> {vig_fim}
@@ -241,7 +276,7 @@ def contract_details_page(contract_id):
             <strong>Aditivo:</strong> {aditivo}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Próximo Passo:</strong> {prox_passo}
+            <strong>Passível para renovação:</strong> {passivel_renovacao_texto}
         </div>
         <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
             <strong>Modalidade:</strong> {modalidade}
@@ -298,12 +333,14 @@ def contract_details_page(contract_id):
         with col3:
             if st.button(f"Adicionar Aditivo {numero_contrato}", key=f"add_aditivo_{id}"):
                 st.session_state['show_add_aditivo_dialog'] = id
-                add_aditivo_dialog(id, numero_contrato, vig_fim)
+                add_aditivo_dialog(id, numero_contrato, vig_fim, valor_contrato)
         with col4:
             uploaded_file = st.file_uploader(f"Anexos", type="pdf", key=f"upload_{id}")
             if uploaded_file is not None:
                 file_path = save_uploaded_file(uploaded_file, id)
                 st.success(f"Arquivo PDF anexado com sucesso: {file_path}")
+
+        show_aditivo_details(contract_id)
 
 def show_planilha():
     st.title('Planilha de Contratos')

@@ -16,7 +16,7 @@ st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento 
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 def show_vencer_30_60():
-    st.title('Contratos a Renovar')
+    st.title('Contratos com vencimento de 30 a 60 dias')
 
     # Obter dados dos contratos
     contracts = get_contracts()

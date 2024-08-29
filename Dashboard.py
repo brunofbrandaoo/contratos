@@ -17,6 +17,12 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
+# st.logo(
+#     LOGO_URL_LARGE,
+#     link="logo_sudema.png",
+#     icon_image=LOGO_URL_SMALL,
+# )
+
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
     if dias_vencer < 0:
@@ -69,7 +75,7 @@ def show_dashboard():
             buttons_html = f"""
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <a href="/Total_contratos" style="text-decoration: none;">
-                    <div style="background-color: #d3d3d3; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: #90ee90; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                         <div style="font-size: 24px;">Total Contratos</div>
                         <div style="font-size: 32px;">{total}</div>
                     </div>
@@ -93,7 +99,7 @@ def show_dashboard():
                     </div>
                 </a>
                 <a href="/vencer_120_180" style="text-decoration: none;">
-                    <div style="background-color: #add8e6; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="background-color: #054f77; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                         <div>Vencem em 120 a 180 Dias</div>
                         <div style="font-size: 24px;">{vencer_120_180}</div>
                     </div>
@@ -152,8 +158,8 @@ def show_dashboard():
             numero_contrato_3 = contracts_sorted_by_days[2][2]
             dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
 
-            numero_contrato_4 = contracts_sorted_by_days[3][2]
-            dias_a_vencer_4 = contracts_sorted_by_days[3][-2]
+            # numero_contrato_4 = contracts_sorted_by_days[3][2]
+            # dias_a_vencer_4 = contracts_sorted_by_days[3][-2]
 
 
             # Exibir os valores em uma lista HTML e CSS estilizada
@@ -169,9 +175,6 @@ def show_dashboard():
                     </li>
                     <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                         <strong>Contrato:</strong> {numero_contrato_3} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}
-                    </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_4} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_4}
                     </li>
                 </ul>
             </div>

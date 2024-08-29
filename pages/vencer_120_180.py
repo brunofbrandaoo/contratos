@@ -45,7 +45,23 @@ def show_vencer_120_180():
                 'Dias a Vencer', 'Situação', 'Aditivo', 'Próximo Passo'
             ]
         )
-        st.dataframe(df)
+        def color_situation(val):
+            return 'background-color: blue; color: white'
+
+        styled_df = df.style.applymap(color_situation, subset=['Situação'])
+
+        # Configurar a coluna de links
+        st.dataframe(
+            styled_df,
+            column_config={
+                "Detalhes": st.column_config.LinkColumn(
+                    "Detalhes",
+                    help="Clique para ver os detalhes do contrato",
+                    display_text="Detalhar"
+                )
+            },
+            hide_index=True,
+        )
     else:
         st.write("Nenhum contrato encontrado.")
 

@@ -33,6 +33,19 @@ def init_db():
             passivel_renovacao INTEGER CHECK(passivel_renovacao IN (0, 1))
         )
     ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS aditivos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contract_id INTEGER,
+            numero_aditivo INTEGER,
+            nova_vig_fim DATE,
+            novo_valor_contrato REAL,
+            data_aditivo DATE,
+            FOREIGN KEY (contract_id) REFERENCES contracts (id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -63,7 +76,7 @@ def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, si
         SET numero_processo = ?, numero_contrato = ?, fornecedor = ?, objeto = ?, situacao = ?, valor_contrato = ?, vig_inicio = ?, vig_fim = ?, prazo_limite = ?, dias_vencer = ?, aditivo = ?, prox_passo = ?, modalidade = ?, amparo_legal = ?, categoria = ?, data_assinatura = ?, data_publicacao = ?, itens = ?, quantidade = ?, gestor = ?, contato = ?, setor = ?, observacao = ?, acompanhamento = ?, passivel_renovacao = ?
         WHERE id = ?
     ''', (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao, id))
-
+    
 def delete_contract(id):
     execute_query('''
         DELETE FROM contracts WHERE id = ?
@@ -81,6 +94,17 @@ def get_contract_by_id(id):
     ''', (id,))
     return result[0] if result else None
 
+def add_aditivo(contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo):
+    execute_query('''
+        INSERT INTO aditivos (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo))
+
+def get_aditivos(contract_id):
+    return fetch_query('''
+        SELECT * FROM aditivos WHERE contract_id = ? ORDER BY numero_aditivo
+    ''', (contract_id,))
+
 if __name__ == "__main__":
     init_db()
-    print("Banco de dados e tabela 'contracts' criados com sucesso.")
+    print("Banco de dados, tabela 'contracts' e tabela 'aditivos' criados com sucesso.")
