@@ -20,13 +20,14 @@ def show_vencer_30_60():
     # Obter dados dos contratos
     contracts = get_contracts()
 
+    # st.json(contracts[5])
     if contracts:
         today = datetime.today().date()
         renovar = []
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
             dias_a_vencer = (vig_fim_date - today).days
-            passivel_renovacao = contract[10]  # Supondo que o campo `passivel_renovacao` esteja na posição 10
+            passivel_renovacao = contract[25]  # Supondo que o campo `passivel_renovacao` esteja na posição 10
 
             # Calcula a situação considerando o campo passível de renovação
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)

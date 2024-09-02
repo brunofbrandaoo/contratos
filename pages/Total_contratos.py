@@ -132,7 +132,7 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 contract[2],  # numero_contrato
                 contract[3],  # fornecedor
                 contract[4],  # objeto
-                calculate_situation(novos_dias_vencer),  # nova situação
+                calculate_situation(novos_dias_vencer, contract[25]),  # nova situação
                 novo_valor_contrato,
                 contract[7],  # vig_inicio
                 novo_vig_fim,
@@ -215,23 +215,39 @@ def show_aditivo_details(contract_id):
     if aditivos:
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background-color: #e9ecef; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <h3 style="color: #495057; text-align: center; margin-bottom: 20px;">Detalhes dos Aditivos</h3>
+        <div style="background-color: #f0f2f5; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #495057; text-align: center; margin-bottom: 25px; font-size: 24px;">Detalhes dos Aditivos</h3>
         """, unsafe_allow_html=True)
 
         for aditivo in aditivos:
             st.markdown(f"""
-            <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
-                <strong>Número do Aditivo:</strong> {aditivo[2]}<br>
-                <strong>Nova Data de Vigência:</strong> {aditivo[3]}<br>
-                <strong>Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}<br>
-                <strong>Data do Aditivo:</strong> {aditivo[5]}
+            <div style="
+                background-color: #ffffff; 
+                padding: 20px; 
+                border-radius: 10px; 
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+                margin-bottom: 20px; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                font-size: 18px;
+            ">
+                <div style="flex: 1; margin-right: 20px;">
+                    <strong style="font-size: 20px;">Número do Aditivo:</strong> {aditivo[2]}<br>
+                    <strong style="font-size: 20px;">Data do Aditivo:</strong> {aditivo[5]}
+                </div>
+                <div style="flex: 1; margin-left: 20px;">
+                    <strong style="font-size: 20px;">Nova Data de Vigência:</strong> {aditivo[3]}<br>
+                    <strong style="font-size: 20px;">Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("Este contrato ainda não possui aditivos.")
+
+
 
 def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
@@ -244,80 +260,89 @@ def contract_details_page(contract_id):
 
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
 
+        # Definindo a situação com base no valor de passivel_renovacao
+        situacao = "Renovar" if passivel_renovacao == 1 else "Novo Processo"
+
         st.markdown(f"""
-<div style="background-color: #f8f9fa; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-    <h2 style="color: #343a40; text-align: center; margin-bottom: 20px;">Detalhes do Contrato {numero_contrato}</h2>
-    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong style="font-size: 24px;">Número do Contrato:</strong> {numero_contrato}
+<div style="background-color: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
+    <h2 style="color: #343a40; text-align: center; margin-bottom: 30px; font-size: 28px;">Detalhes do Contrato {numero_contrato}</h2>
+    <div style="display: flex; gap: 40px; justify-content: space-between;">
+        <!-- Coluna da esquerda -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Número do Contrato:</strong> {numero_contrato}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Objeto:</strong> {objeto}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Fornecedor:</strong> {fornecedor}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Valor do Contrato:</strong> {valor_contrato}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Vigência Início:</strong> {vig_inicio}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Vigência Fim:</strong> {vig_fim}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Prazo Limite (anos):</strong> {prazo_limite}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Data de Assinatura:</strong> {data_assinatura}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Data de Publicação:</strong> {data_publicacao}
+            </div>
+            <div style="{color_situation(situacao)}; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Situação:</strong> {situacao}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Aditivo:</strong> {aditivo}
+            </div>
         </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Fornecedor:</strong> {fornecedor}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Objeto:</strong> {objeto}
-        </div>
-        <div style="{color_situation(situacao)}; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Situação:</strong> {situacao}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Vigência Início:</strong> {vig_inicio}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Valor do Contrato:</strong> {valor_contrato}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Vigência Fim:</strong> {vig_fim}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Prazo Limite (anos):</strong> {prazo_limite}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Aditivo:</strong> {aditivo}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Passível para renovação:</strong> {passivel_renovacao_texto}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Modalidade:</strong> {modalidade}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Amparo Legal:</strong> {amparo_legal}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Categoria:</strong> {categoria}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Data de Assinatura:</strong> {data_assinatura}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Data de Publicação:</strong> {data_publicacao}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Itens:</strong> {itens}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Quantidade:</strong> {quantidade}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Observação:</strong> {observacao}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>movimentacao:</strong> {movimentacao}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Gestor:</strong> {gestor}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Contato:</strong> {contato}
-        </div>
-        <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); width: 48%;">
-            <strong>Setor:</strong> {setor}
+        <!-- Coluna da direita -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Passível para renovação:</strong> {passivel_renovacao_texto}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Modalidade:</strong> {modalidade}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Amparo Legal:</strong> {amparo_legal}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Categoria:</strong> {categoria}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Itens:</strong> {itens}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Quantidade:</strong> {quantidade}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Observação:</strong> {observacao}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Movimentação:</strong> {movimentacao}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Gestor:</strong> {gestor}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Contato:</strong> {contato}
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Setor:</strong> {setor}
+            </div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
+        
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
 
         # Botões na página de detalhes
