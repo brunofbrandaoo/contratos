@@ -3,7 +3,6 @@ import pandas as pd
 import altair as alt
 from db import get_contracts
 from datetime import datetime
-import streamlit_shadcn_ui as ui
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
