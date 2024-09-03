@@ -158,12 +158,15 @@ def show_dashboard():
             # Extraindo os valores dos terceiros elementos e penúltimos elementos
             numero_contrato_1 = contracts_sorted_by_days[0][2]
             dias_a_vencer_1 = contracts_sorted_by_days[0][-2]
+            fornecedor_1 = contracts_sorted_by_days[0][3]
 
             numero_contrato_2 = contracts_sorted_by_days[1][2]
             dias_a_vencer_2 = contracts_sorted_by_days[1][-2]
+            fornecedor_2 = contracts_sorted_by_days[1][3]
 
             numero_contrato_3 = contracts_sorted_by_days[2][2]
             dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
+            fornecedor_3 = contracts_sorted_by_days[2][3]
 
             # Exibir os valores em uma lista HTML e CSS estilizada
             list_html = f"""
@@ -171,13 +174,13 @@ def show_dashboard():
                 <h3 style="color: #dc3545; margin-bottom: 20px;">Urgências para Renovação</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
                     <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_1} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}
+                        <strong>Contrato:</strong> {numero_contrato_1} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_1} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}
                     </li>
                     <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_2} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}
+                        <strong>Contrato:</strong> {numero_contrato_2} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_2} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}
                     </li>
                     <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_3} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}
+                        <strong>Contrato:</strong> {numero_contrato_3} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_3} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}
                     </li>
                 </ul>
             </div>
