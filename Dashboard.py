@@ -11,7 +11,7 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 0 a 60 dias", icon="🟥")
 st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
 st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
@@ -21,7 +21,8 @@ st.logo(image="sudema.png", link=None)
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer, passivel_renovacao):
-    if dias_vencer <= 0:
+    dias_vencer = max(0, dias_vencer)  # Garante que dias_vencer não seja negativo
+    if dias_vencer == 0:
         return 'Vencido'
     elif dias_vencer <= 60:
         return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
@@ -60,7 +61,14 @@ def show_dashboard():
     contracts = get_contracts()
     if contracts:
         today = datetime.today().date()
-        contracts = [(contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], contract[9], (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, calculate_situation((datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days, contract[10])) for contract in contracts]
+        # Ajuste para garantir que dias a vencer não diminua abaixo de 0
+        contracts = [
+            (
+                contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], 
+                contract[9], max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), 
+                calculate_situation(max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), contract[10])
+            ) for contract in contracts
+        ]
         total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
         # Configuração de colunas
@@ -119,7 +127,7 @@ def show_dashboard():
                     </div>
                 </a>
             </div>
-"""
+            """
 
             st.markdown(buttons_html, unsafe_allow_html=True)
 
@@ -173,17 +181,24 @@ def show_dashboard():
             <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                 <h3 style="color: #dc3545; margin-bottom: 20px;">Urgências para Renovação</h3>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_1} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_1} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}
+                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
+                        <div><strong>Contrato:</strong> {numero_contrato_1}</div>
+                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_1}</div>
+                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}</div>
                     </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_2} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_2} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}
+                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
+                        <div><strong>Contrato:</strong> {numero_contrato_2}</div>
+                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_2}</div>
+                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}</div>
                     </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        <strong>Contrato:</strong> {numero_contrato_3} - <strong style="color: #dc3545;">Fornecedor:</strong> {fornecedor_3} - <strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}
+                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
+                        <div><strong>Contrato:</strong> {numero_contrato_3}</div>
+                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_3}</div>
+                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}</div>
                     </li>
                 </ul>
             </div>
+
             """
 
             st.markdown(list_html, unsafe_allow_html=True)

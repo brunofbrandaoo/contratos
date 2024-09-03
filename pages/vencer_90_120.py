@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 0 a 60 dias", icon="🟥")
 st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
 st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
@@ -59,6 +59,11 @@ def show_vencer_90_120():
                     "Detalhar",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
+                ),
+                "Movimentação": st.column_config.Column(
+                    "Movimentação",
+                    help="Movimentação do contrato",
+                    width="large",
                 )
             },
             hide_index=True,

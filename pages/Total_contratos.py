@@ -1,5 +1,3 @@
-# planilha.py
-
 import pandas as pd
 import streamlit as st
 from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
@@ -11,7 +9,7 @@ st.set_page_config(layout="wide")
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
-st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 30 a 60 dias", icon="🟥")
+st.sidebar.page_link("pages/Vencer_30_60.py", label="Contratos com vencimento de 0 a 60 dias", icon="🟥")
 st.sidebar.page_link("pages/Vencimento_60_a_90.py", label="Contratos com vencimento de 60 a 90 dias", icon="🟧")
 st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento de 90 a 120 dias", icon="🟨")
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
@@ -19,7 +17,8 @@ st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", 
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer, passivel_renovacao):
-    if dias_vencer <= 0:
+    dias_vencer = max(0, dias_vencer)  # Garante que não decresça abaixo de 0
+    if dias_vencer == 0:
         return 'Vencido'
     elif dias_vencer <= 60:
         return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
@@ -37,7 +36,7 @@ def color_situation(val):
     color = {
         'Vencido': '#343a40',
         'Renovar': '#ff0000',
-        'Novo Processo': '#ff0000',  # Adiciona a mesma cor para "Novo Processo"
+        'Novo Processo': '#ff0000',
         'Vencer 60 a 90 dias': '#fe843d',
         'Vencer 90 a 120 dias': '#ffc107',
         'Vencer 120 a 180 dias': '#054f77',
@@ -46,15 +45,12 @@ def color_situation(val):
     return f'background-color: {color}; color: white'
 
 def save_uploaded_file(uploaded_file, contract_id):
-    # Define o diretório para salvar os arquivos
     upload_directory = "uploads"
     if not os.path.exists(upload_directory):
         os.makedirs(upload_directory)
     
-    # Define o caminho do arquivo
     file_path = os.path.join(upload_directory, f"contract_{contract_id}.pdf")
     
-    # Salva o arquivo
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     return file_path
@@ -72,7 +68,6 @@ def add_contract_dialog():
     passivel_renovacao = st.selectbox("Passível de Renovação", [0, 1], format_func=lambda x: "Sim" if x == 1 else "Não, Novo Processo")
     prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5])
 
-    # Novos campos com selectbox
     modalidade = st.selectbox("Modalidade", ["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"])
     amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"])
     categoria = st.selectbox("Categoria", ["Bens", "Serviços comuns", "Serviços de Engenharia"])
@@ -80,7 +75,6 @@ def add_contract_dialog():
     data_publicacao = st.date_input("Data de Publicação")
     itens = st.text_input("Itens") 
     quantidade = st.number_input("Quantidade de itens", min_value=0, step=1)
-    # Novos campos de observacao e movimentacao
     observacao = st.text_area("Observação")
     movimentacao = st.text_area("Movimentação")
     gestor = st.text_input("Gestor")
@@ -93,7 +87,7 @@ def add_contract_dialog():
         elif quantidade < 0:
             st.error("A quantidade de itens não pode ser negativa.")
         else:
-            dias_vencer = (vig_fim - datetime.today().date()).days
+            dias_vencer = max(0, (vig_fim - datetime.today().date()).days)
             situacao_calculada = calculate_situation(dias_vencer, passivel_renovacao)
             add_contract(
                 numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, 
@@ -121,11 +115,9 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 novo_aditivo = 1
                 st.warning(f"Valor inválido para aditivo: {aditivo}. Definindo como 1.")
             
-            # Calcular novos dias a vencer
             hoje = datetime.today().date()
-            novos_dias_vencer = (novo_vig_fim - hoje).days
+            novos_dias_vencer = max(0, (novo_vig_fim - hoje).days)
             
-            # Atualizar o contrato
             update_contract(
                 contract_id,
                 contract[1],  # numero_processo
@@ -155,7 +147,6 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 contract[25]   # passivel_renovacao
             )
             
-            # Adicionar o novo aditivo
             add_aditivo(contract_id, novo_aditivo, novo_vig_fim, novo_valor_contrato, data_aditivo)
             
             st.success("Aditivo adicionado com sucesso!")
@@ -180,7 +171,6 @@ def edit_contract_dialog(contract):
     novo_prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5], index=prazo_limite - 1, key=f"prazo_limite_{id}")
     novo_aditivo = int(aditivo) if aditivo.isdigit() else 0
 
-    # Novos campos no formulário de edição
     nova_modalidade = st.selectbox("Modalidade", ["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"], index=["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"].index(modalidade), key=f"modalidade_{id}")
     novo_amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"], index=["Lei 8.666/93", "Lei 14.133/21"].index(amparo_legal), key=f"amparo_legal_{id}")
     nova_categoria = st.selectbox("Categoria", ["Bens", "Serviços comuns", "Serviços de Engenharia"], index=["Bens", "Serviços comuns", "Serviços de Engenharia"].index(categoria), key=f"categoria_{id}")
@@ -188,23 +178,22 @@ def edit_contract_dialog(contract):
     nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
     novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
     nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
-    # Novos campos de observacao e movimentacao
     nova_observacao = st.text_area("Observação", value=observacao, key=f"observacao_{id}")
-    novo_movimentacao = st.text_area("movimentacao", value=movimentacao, key=f"movimentacao_{id}")
+    novo_movimentacao = st.text_area("Movimentação", value=movimentacao, key=f"movimentacao_{id}")
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
 
     novo_prox_passo = st.text_area("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
 
-    novos_dias_vencer = (novo_vig_fim - datetime.today().date()).days
+    novos_dias_vencer = max(0, (novo_vig_fim - datetime.today().date()).days)
 
     if st.button("Salvar Alterações", key=f"salvar_{id}"):
         situacao_calculada = calculate_situation(novos_dias_vencer, passivel_renovacao)
         update_contract(
             id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, 
             novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
-            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_movimentacao
+            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_movimentacao, passivel_renovacao
         )
         st.success("Contrato atualizado com sucesso!")
         st.session_state.show_edit_contract_dialog = False
@@ -247,8 +236,6 @@ def show_aditivo_details(contract_id):
     else:
         st.info("Este contrato ainda não possui aditivos.")
 
-
-
 def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
     if contract:
@@ -259,8 +246,6 @@ def contract_details_page(contract_id):
         ) = contract
 
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
-
-        # Definindo a situação com base no valor de passivel_renovacao
         situacao = "Renovar" if passivel_renovacao == 1 else "Novo Processo"
 
         st.markdown(f"""
@@ -370,11 +355,9 @@ def contract_details_page(contract_id):
 def show_planilha():
     st.title('Planilha de Contratos')
 
-    # Inicializar banco de dados
     init_db()
 
-    # Botões em linha abaixo do título
-    col1, col2 = st.columns([3, 1])  # Ajustar a proporção das colunas conforme necessário
+    col1, col2 = st.columns([3, 1])
     with col1:
         st.title('Gerenciamento de Contratos')
     with col2:
@@ -384,11 +367,9 @@ def show_planilha():
 
     pesquisa_numero = st.text_input("Pesquisar Número do Contrato")
 
-    # Botão de pesquisa
     if st.button("Pesquisar"):
         st.session_state['pesquisa_numero'] = pesquisa_numero
 
-    # Exibir contratos
     contracts = get_contracts()
     if 'pesquisa_numero' in st.session_state:
         contracts = [contract for contract in contracts if contract[2] == st.session_state['pesquisa_numero']]
@@ -398,8 +379,8 @@ def show_planilha():
         transformed_contracts = []
         for contract in contracts:
             vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
-            dias_a_vencer = (vig_fim_date - today).days
-            passivel_renovacao = contract[25]  # Considerando que 'passivel_renovacao' esteja na posição 25
+            dias_a_vencer = max(0, (vig_fim_date - today).days)
+            passivel_renovacao = contract[25]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
@@ -419,7 +400,6 @@ def show_planilha():
             ]
         )
         
-        # Configurar a coluna de links
         st.dataframe(
             df.style.applymap(color_situation, subset=['Situação']),
             column_config={
@@ -427,6 +407,11 @@ def show_planilha():
                     "Detalhes",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
+                ),
+                "Movimentação": st.column_config.Column(
+                    "Movimentação",
+                    help="Movimentação do contrato",
+                    width="large",
                 )
             },
             hide_index=True,
