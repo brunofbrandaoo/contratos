@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
-
+url_base = st.secrets["general"]["url_base"]
 st.sidebar.header("Navegação")
 st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📊")
 st.sidebar.page_link("pages/Total_contratos.py", label="Planilhas", icon="📈")
@@ -33,7 +33,7 @@ def show_vencer_30_60():
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
 
             if situacao_calculada in ['Renovar', 'Novo Processo']:
-                link_detalhes = f"https://contratos-sudema.streamlit.app/Total_contratos?page=details&contract_id={contract[0]}"
+                link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
                 renovar.append(
                     (
                         contract[2], contract[3], contract[4], 

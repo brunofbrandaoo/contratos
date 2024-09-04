@@ -15,6 +15,8 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
+url_base = st.secrets["general"]["url_base"]
+
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer, passivel_renovacao):
     dias_vencer = max(0, dias_vencer)  # Garante que não decresça abaixo de 0
@@ -382,7 +384,7 @@ def show_planilha():
             dias_a_vencer = max(0, (vig_fim_date - today).days)
             passivel_renovacao = contract[25]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
-            link_detalhes = f"https://contratos-sudema.streamlit.app/Total_contratos?page=details&contract_id={contract[0]}"
+            link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 

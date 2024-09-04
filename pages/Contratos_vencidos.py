@@ -18,6 +18,8 @@ st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", 
 def show_contratos_vencidos():
     st.title('Contratos Vencidos')
 
+    url_base = st.secrets["general"]["url_base"]
+
     # Obter dados dos contratos
     contracts = get_contracts()
 
@@ -29,7 +31,7 @@ def show_contratos_vencidos():
             dias_a_vencer = max(0, (vig_fim_date - today).days)  # Garante que não decresça abaixo de 0
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Vencido':
-                link_detalhes = f"https://contratos-sudema.streamlit.app/Total_contratos?page=details&contract_id={contract[0]}"
+                link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
                 vencidos.append(
                     (
                         contract[2], contract[3], contract[4], 
