@@ -370,7 +370,7 @@ def contract_details_page(contract_id):
             uploaded_file = st.file_uploader("Anexos", type="pdf")
             if uploaded_file is not None:
                 # Salva o arquivo usando um identificador único
-                file_path = save_uploaded_file(uploaded_file)
+                file_path = save_uploaded_file(uploaded_file, contract_id)
                 st.success(f"Arquivo PDF anexado com sucesso: {file_path}")
 
                 # Botão para download do arquivo salvo
