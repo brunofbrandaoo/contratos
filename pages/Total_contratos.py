@@ -3,6 +3,7 @@ import streamlit as st
 from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
 from datetime import datetime, timedelta
 import os
+import uuid
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
@@ -16,6 +17,25 @@ st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento 
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
 url_base = st.secrets["general"]["url_base"]
+
+def save_uploaded_file(uploaded_file):
+    # Define o diretório temporário para salvar os arquivos
+    save_directory = "uploads"  # Diretório onde os arquivos serão salvos
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)  # Cria o diretório se ele não existir
+
+    # Gera um identificador único para o arquivo
+    unique_id = str(uuid.uuid4())
+
+    # Define o caminho completo do arquivo, incluindo o nome
+    file_path = os.path.join(save_directory, f"{unique_id}_{uploaded_file.name}")
+
+    # Salva o arquivo no diretório especificado
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    # Retorna o caminho do arquivo salvo
+    return file_path
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer, passivel_renovacao):
@@ -347,10 +367,20 @@ def contract_details_page(contract_id):
                 st.session_state['show_add_aditivo_dialog'] = id
                 add_aditivo_dialog(id, numero_contrato, vig_fim, valor_contrato)
         with col4:
-            uploaded_file = st.file_uploader(f"Anexos", type="pdf", key=f"upload_{id}")
+            uploaded_file = st.file_uploader("Anexos", type="pdf")
             if uploaded_file is not None:
-                file_path = save_uploaded_file(uploaded_file, id)
+                # Salva o arquivo usando um identificador único
+                file_path = save_uploaded_file(uploaded_file)
                 st.success(f"Arquivo PDF anexado com sucesso: {file_path}")
+
+                # Botão para download do arquivo salvo
+                with open(file_path, "rb") as f:
+                    st.download_button(
+                        label="Baixar Arquivo",
+                        data=f,
+                        file_name=uploaded_file.name,
+                        mime="application/pdf"
+                    )
 
         show_aditivo_details(contract_id)
 
