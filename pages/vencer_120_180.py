@@ -29,7 +29,7 @@ def show_vencer_120_180():
             dias_a_vencer = (vig_fim_date - today).days
             situacao_calculada = calculate_situation(dias_a_vencer)
             if situacao_calculada == 'Vencer 120 a 180 dias':
-                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
+                link_detalhes = f"https://contratos-sudema.streamlit.app/Total_contratos?page=details&contract_id={contract[0]}"
                 vencer_60_90.append(
                     (
                         contract[2], contract[3], contract[4], contract[6], 

@@ -160,20 +160,25 @@ def show_dashboard():
             st.altair_chart(chart, use_container_width=True)
 
             # Ordenando os contratos com base no penúltimo elemento (dias a vencer)
-            contracts_sorted_by_days = sorted(contracts, key=lambda x: x[-2])
+            contracts_sorted_by_days = sorted(
+                [contract for contract in contracts if contract[-2] > 0], 
+                key=lambda x: x[-2]
+)
 
             # Extraindo os valores dos terceiros elementos e penúltimos elementos
-            numero_contrato_1 = contracts_sorted_by_days[0][2]
-            dias_a_vencer_1 = contracts_sorted_by_days[0][-2]
-            fornecedor_1 = contracts_sorted_by_days[0][3]
+            if len(contracts_sorted_by_days) >= 3:
+                # Extraindo os valores dos terceiros elementos e penúltimos elementos
+                numero_contrato_1 = contracts_sorted_by_days[0][2]
+                dias_a_vencer_1 = contracts_sorted_by_days[0][-2]
+                fornecedor_1 = contracts_sorted_by_days[0][3]
 
-            numero_contrato_2 = contracts_sorted_by_days[1][2]
-            dias_a_vencer_2 = contracts_sorted_by_days[1][-2]
-            fornecedor_2 = contracts_sorted_by_days[1][3]
+                numero_contrato_2 = contracts_sorted_by_days[1][2]
+                dias_a_vencer_2 = contracts_sorted_by_days[1][-2]
+                fornecedor_2 = contracts_sorted_by_days[1][3]
 
-            numero_contrato_3 = contracts_sorted_by_days[2][2]
-            dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
-            fornecedor_3 = contracts_sorted_by_days[2][3]
+                numero_contrato_3 = contracts_sorted_by_days[2][2]
+                dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
+                fornecedor_3 = contracts_sorted_by_days[2][3]
 
             # Exibir os valores em uma lista HTML e CSS estilizada
             list_html = f"""

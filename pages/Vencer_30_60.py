@@ -33,7 +33,7 @@ def show_vencer_30_60():
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
 
             if situacao_calculada in ['Renovar', 'Novo Processo']:
-                link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
+                link_detalhes = f"https://contratos-sudema.streamlit.app/Total_contratos?page=details&contract_id={contract[0]}"
                 renovar.append(
                     (
                         contract[2], contract[3], contract[4], 
