@@ -266,9 +266,8 @@ def contract_details_page(contract_id):
             dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
             data_publicacao, itens, quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
         ) = contract
-
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
-        situacao = "Renovar" if passivel_renovacao == 1 else "Novo Processo"
+        situacao = calculate_situation(dias_vencer, passivel_renovacao)
 
         st.markdown(f"""
 <div style="background-color: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
