@@ -36,16 +36,20 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS aditivos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            contract_id INTEGER,
-            numero_aditivo INTEGER,
-            nova_vig_fim DATE,
-            novo_valor_contrato REAL,
-            data_aditivo DATE,
-            FOREIGN KEY (contract_id) REFERENCES contracts (id)
-        )
-    ''')
+    CREATE TABLE IF NOT EXISTS aditivos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract_id INTEGER,
+        numero_aditivo INTEGER,
+        nova_vig_fim DATE,
+        novo_valor_contrato REAL,
+        codigo_aditivo INTEGER,               -- Novo campo
+        objeto_aditivo TEXT,               -- Novo campo
+        data_assinatura_aditivo DATE,      -- Novo campo
+        data_publicacao_aditivo DATE,      -- Novo campo
+        FOREIGN KEY (contract_id) REFERENCES contracts (id)
+    )
+''')
+
 
     conn.commit()
     conn.close()
@@ -97,11 +101,12 @@ def get_contract_by_id(id):
     ''', (id,))
     return result[0] if result else None
 
-def add_aditivo(contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo):
+def add_aditivo(contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo):
     execute_query('''
-        INSERT INTO aditivos (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, data_aditivo))
+        INSERT INTO aditivos (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo))
+
 
 def get_aditivos(contract_id):
     return fetch_query('''

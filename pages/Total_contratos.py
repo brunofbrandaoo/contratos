@@ -125,7 +125,12 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
     
     novo_vig_fim = st.date_input("Nova Data Final", value=datetime.strptime(vig_fim_atual, '%Y-%m-%d').date())
     novo_valor_contrato = st.number_input("Novo Valor do Contrato", value=float(valor_contrato_atual), format="%.2f")
-    data_aditivo = st.date_input("Data do Aditivo", value=datetime.today())
+
+    # Novos campos para o aditivo
+    codigo_aditivo = st.text_input("Código do Aditivo")
+    objeto_aditivo = st.text_input("Objeto do Aditivo")
+    data_assinatura_aditivo = st.date_input("Data de Assinatura do Aditivo")
+    data_publicacao_aditivo = st.date_input("Data de Publicação do Aditivo")
     
     if st.button("Salvar Aditivo"):
         contract = get_contract_by_id(contract_id)
@@ -169,11 +174,13 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 contract[25]   # passivel_renovacao
             )
             
-            add_aditivo(contract_id, novo_aditivo, novo_vig_fim, novo_valor_contrato, data_aditivo)
+            # Adiciona o aditivo sem o campo data_aditivo
+            add_aditivo(contract_id, novo_aditivo, novo_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo)
             
             st.success("Aditivo adicionado com sucesso!")
             st.session_state.show_add_aditivo_dialog = False
             st.rerun()
+
 
 @st.experimental_dialog(title="Editar Contrato")
 def edit_contract_dialog(contract):
@@ -198,15 +205,10 @@ def edit_contract_dialog(contract):
     nova_categoria = st.selectbox("Categoria", ["Bens", "Serviços comuns", "Serviços de Engenharia"], index=["Bens", "Serviços comuns", "Serviços de Engenharia"].index(categoria), key=f"categoria_{id}")
     nova_data_assinatura = st.date_input("Data de Assinatura", value=datetime.strptime(data_assinatura, "%Y-%m-%d").date() if data_assinatura else None, key=f"data_assinatura_{id}")
     nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
-    novos_itens = st.text_input("Itens", value=itens, key=f"itens_{id}")
-    nova_quantidade = st.number_input("Quantidade", value=quantidade, step=1, key=f"quantidade_{id}")
-    nova_observacao = st.text_area("Observação", value=observacao, key=f"observacao_{id}")
     novo_movimentacao = st.text_area("Movimentação", value=movimentacao, key=f"movimentacao_{id}")
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
-
-    novo_prox_passo = st.text_area("Próximo Passo", value=prox_passo, key=f"prox_passo_{id}")
 
     novos_dias_vencer = max(0, (novo_vig_fim - datetime.today().date()).days)
 
@@ -214,49 +216,76 @@ def edit_contract_dialog(contract):
         situacao_calculada = calculate_situation(novos_dias_vencer, passivel_renovacao)
         update_contract(
             id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, 
-            novo_prazo_limite, novos_dias_vencer, novo_aditivo, novo_prox_passo, nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
-            nova_data_publicacao, novos_itens, nova_quantidade, novo_gestor, novo_contato, novo_setor, nova_observacao, novo_movimentacao, passivel_renovacao
+            novo_prazo_limite, novos_dias_vencer, novo_aditivo, "", nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
+            nova_data_publicacao, "", 0, novo_gestor, novo_contato, novo_setor, "", novo_movimentacao, passivel_renovacao
         )
         st.success("Contrato atualizado com sucesso!")
         st.session_state.show_edit_contract_dialog = False
         st.rerun()
 
+
 def show_aditivo_details(contract_id):
     aditivos = get_aditivos(contract_id)
     if aditivos:
+        # Espaçamento superior para separar a seção
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background-color: #f0f2f5; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
-            <h3 style="color: #495057; text-align: center; margin-bottom: 25px; font-size: 24px;">Detalhes dos Aditivos</h3>
+        <div style="background-color: #f7f9fc; padding: 20px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #4a5568; text-align: center; margin-bottom: 20px; font-size: 24px;">Detalhes dos Aditivos</h3>
         """, unsafe_allow_html=True)
 
-        for aditivo in aditivos:
+        for i, aditivo in enumerate(aditivos, 1):
             st.markdown(f"""
             <div style="
                 background-color: #ffffff; 
                 padding: 20px; 
-                border-radius: 10px; 
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+                border-radius: 8px; 
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
                 margin-bottom: 20px; 
                 display: flex; 
+                flex-wrap: wrap; 
                 justify-content: space-between; 
-                align-items: center;
-                font-size: 18px;
+                align-items: flex-start;
+                font-size: 16px;
+                color: #2d3748;
+                position: relative;
             ">
-                <div style="flex: 1; margin-right: 20px;">
-                    <strong style="font-size: 20px;">Número do Aditivo:</strong> {aditivo[2]}<br>
-                    <strong style="font-size: 20px;">Data do Aditivo:</strong> {aditivo[5]}
+                <div style="
+                    position: absolute;
+                    top: -15px;
+                    left: -15px;
+                    width: 40px;
+                    height: 40px;
+                    background-color: #343a40;
+                    color: white;
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: bold;
+                    font-size: 18px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                ">
+                    {aditivo[2]}
                 </div>
-                <div style="flex: 1; margin-left: 20px;">
-                    <strong style="font-size: 20px;">Nova Data de Vigência:</strong> {aditivo[3]}<br>
-                    <strong style="font-size: 20px;">Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}
+                <div style="flex: 1; min-width: 250px; margin-right: 20px;">
+                    <p style="margin: 0; font-size: 18px;"><strong>Código do Aditivo:</strong> {aditivo[5]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Nova Data de Vigência:</strong> {aditivo[3]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}</p>
+                </div>
+                <div style="flex: 1; min-width: 250px; margin-left: 20px;">
+                    <p style="margin: 0; font-size: 18px;"><strong>Objeto do Aditivo:</strong> {aditivo[6]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Assinatura do Aditivo:</strong> {aditivo[7]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Publicação do Aditivo:</strong> {aditivo[8]}</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
+        # Fechamento do contêiner principal
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("Este contrato ainda não possui aditivos.")
+
 
 def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
@@ -312,9 +341,6 @@ def contract_details_page(contract_id):
         <!-- Coluna da direita -->
         <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Passível para renovação:</strong> {passivel_renovacao_texto}
-            </div>
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Modalidade:</strong> {modalidade}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
@@ -322,15 +348,6 @@ def contract_details_page(contract_id):
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Categoria:</strong> {categoria}
-            </div>
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Itens:</strong> {itens}
-            </div>
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Quantidade:</strong> {quantidade}
-            </div>
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Observação:</strong> {observacao}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Movimentação:</strong> {movimentacao}
@@ -413,7 +430,7 @@ def show_planilha():
             dias_a_vencer = max(0, (vig_fim_date - today).days)
             passivel_renovacao = contract[25]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
-            link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
+            link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 

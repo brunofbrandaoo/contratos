@@ -87,7 +87,7 @@ def show_dashboard():
                 </a>
                 <a href="/Vencer_30_60" style="text-decoration: none;">
                     <div style="background-color: #ff0000; color: white; border-radius: 8px; width: 440px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div style="font-size: 24px;">Vencem em 30 a 60 dias</div>
+                        <div style="font-size: 24px;">Vencem em até 60 dias</div>
                         <div style="width: 80px; height: 80px; border-radius: 50%; background-color: white; color: #ff0000; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-top: 10px;">
                             {vencer_30_60}
                         </div>
