@@ -430,7 +430,7 @@ def show_planilha():
             dias_a_vencer = max(0, (vig_fim_date - today).days)
             passivel_renovacao = contract[25]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
-            link_detalhes = f"http://localhost:8501/Total_contratos?page=details&contract_id={contract[0]}"
+            link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
