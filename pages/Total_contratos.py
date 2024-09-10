@@ -123,11 +123,11 @@ def add_contract_dialog():
 def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contrato_atual):
     st.write(f"**Adicionar Aditivo ao Contrato:** {numero_contrato}")
     
-    novo_vig_fim = st.date_input("Nova Data Final", value=datetime.strptime(vig_fim_atual, '%Y-%m-%d').date())
-    novo_valor_contrato = st.number_input("Novo Valor do Contrato", value=float(valor_contrato_atual), format="%.2f")
+    novo_vig_fim = st.date_input("Nova Data de Vigência Final", value=datetime.strptime(vig_fim_atual, '%Y-%m-%d').date())
+    novo_valor_contrato = st.number_input("Valor do Aditivo", value=float(valor_contrato_atual), format="%.2f")
 
     # Novos campos para o aditivo
-    codigo_aditivo = st.text_input("Código do Aditivo")
+    codigo_aditivo = st.text_input("Número do Aditivo")
     objeto_aditivo = st.text_input("Objeto do Aditivo")
     data_assinatura_aditivo = st.date_input("Data de Assinatura do Aditivo")
     data_publicacao_aditivo = st.date_input("Data de Publicação do Aditivo")
@@ -269,9 +269,9 @@ def show_aditivo_details(contract_id):
                     {aditivo[2]}
                 </div>
                 <div style="flex: 1; min-width: 250px; margin-right: 20px;">
-                    <p style="margin: 0; font-size: 18px;"><strong>Código do Aditivo:</strong> {aditivo[5]}</p>
-                    <p style="margin: 0; font-size: 18px;"><strong>Nova Data de Vigência:</strong> {aditivo[3]}</p>
-                    <p style="margin: 0; font-size: 18px;"><strong>Novo Valor do Contrato:</strong> R$ {aditivo[4]:.2f}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Número do Aditivo:</strong> {aditivo[5]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Vigência Final do Aditivo:</strong> {aditivo[3]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Valor do aditivo:</strong> R$ {aditivo[4]:.2f}</p>
                 </div>
                 <div style="flex: 1; min-width: 250px; margin-left: 20px;">
                     <p style="margin: 0; font-size: 18px;"><strong>Objeto do Aditivo:</strong> {aditivo[6]}</p>
