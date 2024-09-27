@@ -1,9 +1,11 @@
 import pandas as pd
 import streamlit as st
-from db import init_db, add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
+from db import add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
 from datetime import datetime, timedelta
 import os
 import uuid
+from decimal import Decimal
+from datetime import datetime
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
@@ -80,6 +82,8 @@ def save_uploaded_file(uploaded_file, contract_id):
 @st.experimental_dialog(title="Adicionar Novo Contrato")
 def add_contract_dialog():
     st.write("**Adicionar Novo Contrato**")
+    
+    # Inputs de texto e número
     numero_processo = st.text_input("Número do Processo")
     numero_contrato = st.text_input("Número do Contrato")
     fornecedor = st.text_input("Fornecedor do Contrato")
@@ -90,32 +94,41 @@ def add_contract_dialog():
     passivel_renovacao = st.selectbox("Passível de Renovação", [0, 1], format_func=lambda x: "Sim" if x == 1 else "Não, Novo Processo")
     prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5])
 
+    # Inputs de seleção e texto
     modalidade = st.selectbox("Modalidade", ["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"])
     amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"])
     categoria = st.selectbox("Categoria", ["Bens", "Serviços comuns", "Serviços de Engenharia"])
     data_assinatura = st.date_input("Data de Assinatura")
     data_publicacao = st.date_input("Data de Publicação")
-    itens = st.text_input("Itens") 
-    quantidade = st.number_input("Quantidade de itens", min_value=0, step=1)
     observacao = st.text_area("Observação")
-    movimentacao = st.text_area("Movimentação")
     gestor = st.text_input("Gestor")
     contato = st.text_input("Contato")
     setor = st.text_input("Setor")
 
     if st.button("Salvar Novo Contrato"):
+        # Validação simples de valores negativos
         if valor_contrato < 0:
             st.error("O valor do contrato não pode ser negativo.")
-        elif quantidade < 0:
-            st.error("A quantidade de itens não pode ser negativa.")
         else:
+            # Calcula dias a vencer
             dias_vencer = max(0, (vig_fim - datetime.today().date()).days)
             situacao_calculada = calculate_situation(dias_vencer, passivel_renovacao)
+
+            # Conversões necessárias para o banco de dados
+            valor_contrato_decimal = Decimal(valor_contrato)  # Garantir que seja decimal
+            vig_inicio_str = vig_inicio.strftime('%Y-%m-%d')  # Converter datas para string
+            vig_fim_str = vig_fim.strftime('%Y-%m-%d')
+            data_assinatura_str = data_assinatura.strftime('%Y-%m-%d')
+            data_publicacao_str = data_publicacao.strftime('%Y-%m-%d')
+
+            # Função que insere no banco
             add_contract(
-                numero_processo, numero_contrato, fornecedor, objeto, situacao_calculada, valor_contrato, vig_inicio, vig_fim, 
-                prazo_limite, dias_vencer, 0, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, 
-                itens, quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
+                numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, 
+                vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, categoria, 
+                data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, 
+                passivel_renovacao
             )
+
             st.session_state.show_add_contract_dialog = False
             st.rerun()
 
@@ -403,8 +416,6 @@ def contract_details_page(contract_id):
 def show_planilha():
     st.title('Planilha de Contratos')
 
-    init_db()
-
     col1, col2 = st.columns([3, 1])
     with col1:
         st.title('Gerenciamento de Contratos')
@@ -426,16 +437,24 @@ def show_planilha():
         today = datetime.today().date()
         transformed_contracts = []
         for contract in contracts:
-            vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
+            # Verifica se o valor de contract[8] é uma string e não None ou int
+            if isinstance(contract[8], str):
+                try:
+                    vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
+                except ValueError:
+                    vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
+            else:
+                vig_fim_date = today  # Se não for string, usa a data de hoje
+
             dias_a_vencer = max(0, (vig_fim_date - today).days)
-            passivel_renovacao = contract[25]  
+            passivel_renovacao = contract[18]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
-                    contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                    contract[11], contract[24], link_detalhes
+                    contract[5], contract[6], contract[7], dias_a_vencer, situacao_calculada, 
+                    contract[17], link_detalhes
                 )
             )
         
@@ -443,8 +462,7 @@ def show_planilha():
             transformed_contracts, 
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 
-                'Aditivo', 'Movimentação', 'Detalhes'
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 'Movimentação', 'Detalhes'
             ]
         )
         
@@ -455,15 +473,12 @@ def show_planilha():
                     "Detalhes",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"
-                ),
-                "Movimentação": st.column_config.Column(
-                    "Movimentação",
-                    help="Movimentação do contrato",
-                    width="large",
                 )
             },
             hide_index=True,
         )
+
+        st.json(contracts[0])
     else:
         st.write("Nenhum contrato encontrado.")
 
