@@ -88,10 +88,11 @@ def get_contracts():
         SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao FROM contracts
     ''')
 
-# Função para obter contrato por ID
 def get_contract_by_id(id):
     result = fetch_query('''
-        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+               modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+               passivel_renovacao, aditivo
         FROM contracts WHERE id = %s
     ''', (id,))
     return result[0] if result else None

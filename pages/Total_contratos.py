@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import os
 import uuid
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, date
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
@@ -54,6 +54,31 @@ def calculate_situation(dias_vencer, passivel_renovacao):
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
+    
+def calculate_days_to_expiry(vig_fim):
+    """
+    Calcula a quantidade de dias até o vencimento do contrato.
+
+    Parameters:
+    vig_fim (datetime.date | str): Data de término da vigência do contrato como string no formato 'YYYY-MM-DD' ou como datetime.date.
+
+    Returns:
+    int: Número de dias restantes até o vencimento. Se já estiver vencido, retorna um valor negativo.
+    """
+    # Se `vig_fim` já for um objeto datetime.date, converte para string no formato necessário
+    if isinstance(vig_fim, date):
+        vig_fim = vig_fim.strftime('%Y-%m-%d')
+
+    # Converter a data para um objeto datetime
+    vig_fim_date = datetime.strptime(vig_fim, '%Y-%m-%d').date()
+    
+    # Obter a data atual
+    hoje = datetime.now().date()
+    
+    # Calcular a diferença em dias
+    dias_restantes = (vig_fim_date - hoje).days
+    
+    return dias_restantes
 
 # Função para aplicar cores com base na situação
 def color_situation(val):
@@ -304,12 +329,14 @@ def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
     if contract:
         (
-            id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
-            dias_vencer, aditivo, modalidade, amparo_legal, categoria, data_assinatura, 
-            data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao
+            id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+            modalidade, amparo_legal, categoria, data_assinatura, 
+            data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao, aditivo
         ) = contract
-        passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
+
+        dias_vencer = calculate_days_to_expiry(vig_fim)
         situacao = calculate_situation(dias_vencer, passivel_renovacao)
+        passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
 
         st.markdown(f"""
 <div style="background-color: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">

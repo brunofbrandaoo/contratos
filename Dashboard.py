@@ -33,6 +33,19 @@ def calculate_situation(dias_vencer, passivel_renovacao):
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
+    
+def convert_to_date(value):
+    """Converte o valor para uma data, se necessário."""
+    if isinstance(value, datetime):
+        return value.date()  # Se já for datetime, retorna a data
+    elif isinstance(value, str):
+        try:
+            return datetime.strptime(value, '%Y-%m-%d').date()  # Tenta converter de string para datetime
+        except ValueError:
+            return datetime.today().date()  # Se falhar, usa a data de hoje como fallback
+    else:
+        return datetime.today().date()  # Se for outro tipo, usa a data de hoje como fallback
+
 
 # Função para calcular os dados do dashboard
 def calculate_dashboard_data(contracts):
@@ -60,14 +73,17 @@ def show_dashboard():
     contracts = get_contracts()
     if contracts:
         today = datetime.today().date()
-        # Ajuste para garantir que dias a vencer não diminua abaixo de 0
+        
+        # Ajuste para garantir que dias a vencer não diminua abaixo de 0 e que vig_fim seja uma data válida
         contracts = [
             (
-                contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], 
-                contract[9], max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), 
-                calculate_situation(max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), contract[10])
+                contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8],
+                contract[9],  # Outros campos
+                max(0, (convert_to_date(contract[8]) - today).days),  # Calcula dias a vencer
+                calculate_situation(max(0, (convert_to_date(contract[8]) - today).days), contract[10])  # Situação calculada
             ) for contract in contracts
         ]
+        
         total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
         # Configuração de colunas
@@ -206,6 +222,8 @@ def show_dashboard():
             """
 
             st.markdown(list_html, unsafe_allow_html=True)
+
+        st.json(contracts[1])
 
     else:
         st.write("Nenhum contrato encontrado.")
