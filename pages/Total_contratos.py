@@ -237,40 +237,98 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
 
 @st.experimental_dialog(title="Editar Contrato")
 def edit_contract_dialog(contract):
-    (
-        id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
-        dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, 
-        quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
-    ) = contract
+    (id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+                    modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+                    passivel_renovacao, aditivo) = contract
+
     st.write(f"**Editando Contrato:** {numero_contrato}")
+
+    # Campos de edição no formulário
     novo_numero_processo = st.text_input("Número do Processo", value=numero_processo, key=f"numero_processo_{id}")
     novo_numero_contrato = st.text_input("Número do Contrato", value=numero_contrato, key=f"numero_contrato_{id}")
     novo_fornecedor = st.text_input("Fornecedor do Contrato", value=fornecedor, key=f"fornecedor_{id}")
     novo_objeto = st.text_input("Objeto", value=objeto, key=f"objeto_{id}")
-    novo_valor_contrato = st.number_input("Valor do Contrato", value=valor_contrato, step=1000.00, min_value=0.0, key=f"valor_contrato_{id}")
-    novo_vig_inicio = st.date_input("Vigência Início", value=datetime.strptime(vig_inicio, "%Y-%m-%d").date(), key=f"vig_inicio_{id}")
-    novo_vig_fim = st.date_input("Vigência Fim", value=datetime.strptime(vig_fim, "%Y-%m-%d").date(), key=f"vig_fim_{id}")
-    novo_prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5], index=prazo_limite - 1, key=f"prazo_limite_{id}")
-    novo_aditivo = int(aditivo) if aditivo.isdigit() else 0
 
-    nova_modalidade = st.selectbox("Modalidade", ["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"], index=["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"].index(modalidade), key=f"modalidade_{id}")
-    novo_amparo_legal = st.selectbox("Amparo Legal", ["Lei 8.666/93", "Lei 14.133/21"], index=["Lei 8.666/93", "Lei 14.133/21"].index(amparo_legal), key=f"amparo_legal_{id}")
-    nova_categoria = st.selectbox("Categoria", ["Bens", "Serviços comuns", "Serviços de Engenharia"], index=["Bens", "Serviços comuns", "Serviços de Engenharia"].index(categoria), key=f"categoria_{id}")
-    nova_data_assinatura = st.date_input("Data de Assinatura", value=datetime.strptime(data_assinatura, "%Y-%m-%d").date() if data_assinatura else None, key=f"data_assinatura_{id}")
-    nova_data_publicacao = st.date_input("Data de Publicação", value=datetime.strptime(data_publicacao, "%Y-%m-%d").date() if data_publicacao else None, key=f"data_publicacao_{id}")
-    novo_movimentacao = st.text_area("Movimentação", value=movimentacao, key=f"movimentacao_{id}")
+    # Conversão de valor_contrato para float no `st.number_input` para evitar erro de tipo
+    novo_valor_contrato = st.number_input(
+        "Valor do Contrato", 
+        value=float(valor_contrato),  # Converte para float
+        step=1000.00, 
+        min_value=0.0, 
+        key=f"valor_contrato_{id}"
+    )
+
+    novo_vig_inicio = st.date_input("Vigência Início", value=vig_inicio, key=f"vig_inicio_{id}")
+    novo_vig_fim = st.date_input("Vigência Fim", value=vig_fim, key=f"vig_fim_{id}")
+    novo_prazo_limite = st.radio("Prazo Limite (anos)", options=[1, 2, 3, 4, 5], index=prazo_limite - 1, key=f"prazo_limite_{id}")
+
+    # Converter aditivo para inteiro
+    novo_aditivo = int(aditivo) if aditivo else 0
+
+    nova_modalidade = st.selectbox(
+        "Modalidade", 
+        ["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"], 
+        index=["Dispensa", "Inegibilidade", "Pregão", "Concorrência", "Adesão a Ata"].index(modalidade), 
+        key=f"modalidade_{id}"
+    )
+
+    novo_amparo_legal = st.selectbox(
+        "Amparo Legal", 
+        ["Lei 8.666/93", "Lei 14.133/21"], 
+        index=["Lei 8.666/93", "Lei 14.133/21"].index(amparo_legal), 
+        key=f"amparo_legal_{id}"
+    )
+
+    nova_categoria = st.selectbox(
+        "Categoria", 
+        ["Bens", "Serviços comuns", "Serviços de Engenharia"], 
+        index=["Bens", "Serviços comuns", "Serviços de Engenharia"].index(categoria), 
+        key=f"categoria_{id}"
+    )
+
+    nova_data_assinatura = st.date_input("Data de Assinatura", value=data_assinatura if data_assinatura else None, key=f"data_assinatura_{id}")
+    nova_data_publicacao = st.date_input("Data de Publicação", value=data_publicacao if data_publicacao else None, key=f"data_publicacao_{id}")
+
+    novo_observacao = st.text_input('Observação', value=observacao, key=f"observacao_{id}")
+
     novo_gestor = st.text_input("Gestor", value=gestor, key=f"gestor_{id}")
     novo_contato = st.text_input("Contato", value=contato, key=f"contato_{id}")
     novo_setor = st.text_input("Setor", value=setor, key=f"setor_{id}")
+    novo_aditivo = aditivo
 
+    # Calculando dias para vencimento
     novos_dias_vencer = max(0, (novo_vig_fim - datetime.today().date()).days)
 
+    print(f"Quantidade de campos no contract: {len(contract)}")
+    print(f"Campos retornados: {contract}")
+
+
     if st.button("Salvar Alterações", key=f"salvar_{id}"):
+        # Calcular nova situação do contrato com base nos dias para vencer e se é passível de renovação
         situacao_calculada = calculate_situation(novos_dias_vencer, passivel_renovacao)
+
+        # Chamar a função `update_contract` com os novos valores
         update_contract(
-            id, novo_numero_processo, novo_numero_contrato, novo_fornecedor, novo_objeto, situacao_calculada, novo_valor_contrato, novo_vig_inicio, novo_vig_fim, 
-            novo_prazo_limite, novos_dias_vencer, novo_aditivo, "", nova_modalidade, novo_amparo_legal, nova_categoria, nova_data_assinatura, 
-            nova_data_publicacao, "", 0, novo_gestor, novo_contato, novo_setor, "", novo_movimentacao, passivel_renovacao
+            id, 
+            novo_numero_processo, 
+            novo_numero_contrato, 
+            novo_fornecedor, 
+            novo_objeto, 
+            novo_valor_contrato, 
+            novo_vig_inicio, 
+            novo_vig_fim, 
+            novo_prazo_limite, 
+            nova_modalidade, 
+            novo_amparo_legal, 
+            nova_categoria, 
+            nova_data_assinatura, 
+            nova_data_publicacao,
+            novo_observacao,
+            novo_gestor, 
+            novo_contato, 
+            novo_setor, 
+            passivel_renovacao,
+            novo_aditivo
         )
         st.success("Contrato atualizado com sucesso!")
         st.session_state.show_edit_contract_dialog = False
