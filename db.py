@@ -60,8 +60,17 @@ def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_con
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     ''', params)
 # Função para atualizar um contrato
-def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao):
-    # Convertendo datas para string no formato YYYY-MM-DD
+def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+                    modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+                    passivel_renovacao, aditivo):
+    """
+    Atualiza os detalhes de um contrato no banco de dados.
+
+    Parameters:
+    id (int): ID do contrato a ser atualizado.
+    Todos os outros parâmetros correspondem às colunas da tabela `contracts`.
+    """
+    # Convertendo datas para string no formato YYYY-MM-DD, caso sejam objetos datetime
     vig_inicio_str = vig_inicio.strftime('%Y-%m-%d') if isinstance(vig_inicio, datetime) else vig_inicio
     vig_fim_str = vig_fim.strftime('%Y-%m-%d') if isinstance(vig_fim, datetime) else vig_fim
     data_assinatura_str = data_assinatura.strftime('%Y-%m-%d') if isinstance(data_assinatura, datetime) else data_assinatura
@@ -70,12 +79,19 @@ def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, va
     # Garantir que valor_contrato seja Decimal para PostgreSQL
     valor_contrato_decimal = Decimal(valor_contrato)
 
+    # Garantir que `aditivo` seja um valor inteiro
+    aditivo_int = int(aditivo) if aditivo is not None else 0
+
+    # Atualiza o contrato incluindo a coluna `aditivo`
     execute_query('''
         UPDATE contracts
-        SET numero_processo = %s, numero_contrato = %s, fornecedor = %s, objeto = %s, valor_contrato = %s, vig_inicio = %s, vig_fim = %s, prazo_limite = %s, modalidade = %s, amparo_legal = %s, categoria = %s, data_assinatura = %s, data_publicacao = %s, gestor = %s, contato = %s, setor = %s, observacao = %s, passivel_renovacao = %s
+        SET numero_processo = %s, numero_contrato = %s, fornecedor = %s, objeto = %s, valor_contrato = %s, vig_inicio = %s, 
+            vig_fim = %s, prazo_limite = %s, modalidade = %s, amparo_legal = %s, categoria = %s, data_assinatura = %s, 
+            data_publicacao = %s, gestor = %s, contato = %s, setor = %s, observacao = %s, passivel_renovacao = %s, aditivo = %s
         WHERE id = %s
-    ''', (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, passivel_renovacao, id))
-
+    ''', (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, vig_inicio_str, vig_fim_str, prazo_limite, 
+          modalidade, amparo_legal, categoria, data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, 
+          passivel_renovacao, aditivo_int, id))
 # Função para excluir um contrato
 def delete_contract(id):
     execute_query('''

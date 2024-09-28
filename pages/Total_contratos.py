@@ -161,7 +161,12 @@ def add_contract_dialog():
 def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contrato_atual):
     st.write(f"**Adicionar Aditivo ao Contrato:** {numero_contrato}")
     
-    novo_vig_fim = st.date_input("Nova Data de Vigência Final", value=datetime.strptime(vig_fim_atual, '%Y-%m-%d').date())
+    # Verificar se `vig_fim_atual` é uma string e convertê-la para `datetime.date` se necessário
+    if isinstance(vig_fim_atual, str):
+        vig_fim_atual = datetime.strptime(vig_fim_atual, '%Y-%m-%d').date()
+    
+    # Se `vig_fim_atual` já for um objeto datetime.date, ele será usado diretamente no date_input
+    novo_vig_fim = st.date_input("Nova Data de Vigência Final", value=vig_fim_atual)
     novo_valor_contrato = st.number_input("Valor do Aditivo", value=float(valor_contrato_atual), format="%.2f")
 
     # Novos campos para o aditivo
@@ -172,6 +177,13 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
     
     if st.button("Salvar Aditivo"):
         contract = get_contract_by_id(contract_id)
+        print(f"Contract fields: {contract}")
+        print(f"Total fields in contract: {len(contract)}")
+
+        # Imprimir cada campo e o índice correspondente
+        for idx, field in enumerate(contract):
+            print(f"Index {idx}: {field}")
+
         if contract:
             try:
                 aditivo = contract[11]  # Assumindo que o índice 11 corresponde ao campo 'aditivo'
@@ -189,31 +201,34 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
                 contract[2],  # numero_contrato
                 contract[3],  # fornecedor
                 contract[4],  # objeto
-                calculate_situation(novos_dias_vencer, contract[25]),  # nova situação
-                novo_valor_contrato,
-                contract[7],  # vig_inicio
+                novo_valor_contrato,  # novo valor do contrato atualizado
+                contract[6],  # vig_inicio (index correto é 6)
                 novo_vig_fim,
-                contract[9],  # prazo_limite
-                novos_dias_vencer,
-                str(novo_aditivo),
-                contract[12],  # prox_passo
-                contract[13],  # modalidade
-                contract[14],  # amparo_legal
-                contract[15],  # categoria
-                contract[16],  # data_assinatura
-                contract[17],  # data_publicacao
-                contract[18],  # itens
-                contract[19],  # quantidade
-                contract[20],  # gestor
-                contract[21],  # contato
-                contract[22],  # setor
-                contract[23],  # observacao
-                contract[24],  # movimentacao
-                contract[25]   # passivel_renovacao
+                contract[8],  # prazo_limite (index correto é 8)
+                contract[9],  # modalidade
+                contract[10], # amparo_legal
+                contract[11], # categoria
+                contract[12], # data_assinatura
+                contract[13], # data_publicacao
+                contract[14], # gestor
+                contract[15], # contato
+                contract[16], # setor
+                contract[17], # observacao
+                contract[18], # passivel_renovacao (index correto é 18)
+                novo_aditivo   # valor de aditivo atualizado
             )
             
-            # Adiciona o aditivo sem o campo data_aditivo
-            add_aditivo(contract_id, novo_aditivo, novo_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo)
+            # Adiciona o aditivo com os novos campos
+            add_aditivo(
+                contract_id, 
+                novo_aditivo, 
+                novo_vig_fim, 
+                novo_valor_contrato, 
+                codigo_aditivo, 
+                objeto_aditivo, 
+                data_assinatura_aditivo, 
+                data_publicacao_aditivo
+            )
             
             st.success("Aditivo adicionado com sucesso!")
             st.session_state.show_add_aditivo_dialog = False
