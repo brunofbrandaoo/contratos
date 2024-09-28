@@ -439,24 +439,32 @@ def show_planilha():
     if contracts:
         today = datetime.today().date()
         transformed_contracts = []
-        for contract in contracts:
-            # Verifica se o valor de contract[8] é uma string e não None ou int
-            if isinstance(contract[8], str):
-                try:
-                    vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
-                except ValueError:
-                    vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
-            else:
-                vig_fim_date = today  # Se não for string, usa a data de hoje
 
-            dias_a_vencer = max(0, (vig_fim_date - today).days)
+        for contract in contracts:
+            print(f"Processando contrato: {contract}")  # Debug do contrato atual
+
+            # Aqui ajustamos para garantir que estamos usando o índice correto para vig_fim
+            if isinstance(contract[7], datetime):
+                vig_fim_date = contract[7]  # Usando o valor correto para a data de vigência final
+            else:
+                try:
+                    vig_fim_date = datetime.strptime(str(contract[7]), '%Y-%m-%d').date()
+                except ValueError:
+                    print(f"Data inválida encontrada no contrato: {contract[7]}")
+                    vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
+
+            # Calcula o número de dias a vencer
+            dias_a_vencer = (vig_fim_date - today).days
+            print(f"Dias a vencer calculado: {dias_a_vencer} para vigência final em {vig_fim_date}")
+
             passivel_renovacao = contract[18]  
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
+
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
-                    contract[5], contract[6], contract[7], dias_a_vencer, situacao_calculada, 
+                    contract[5], contract[6], vig_fim_date, dias_a_vencer, situacao_calculada, 
                     contract[17], link_detalhes
                 )
             )
