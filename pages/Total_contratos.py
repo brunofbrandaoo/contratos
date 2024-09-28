@@ -305,8 +305,8 @@ def contract_details_page(contract_id):
     if contract:
         (
             id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
-            dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, 
-            data_publicacao, itens, quantidade, gestor, contato, setor, observacao, movimentacao, passivel_renovacao
+            dias_vencer, aditivo, modalidade, amparo_legal, categoria, data_assinatura, 
+            data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao
         ) = contract
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
         situacao = calculate_situation(dias_vencer, passivel_renovacao)
@@ -353,6 +353,9 @@ def contract_details_page(contract_id):
         </div>
         <!-- Coluna da direita -->
         <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
+                <strong>Número processo:</strong> {numero_processo}
+            </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Modalidade:</strong> {modalidade}
             </div>

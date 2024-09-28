@@ -34,7 +34,6 @@ def fetch_query(query, params=()):
     return result
 
 
-# Função para adicionar um novo contrato
 def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao):
     # Convertendo datas para string no formato YYYY-MM-DD
     vig_inicio_str = vig_inicio.strftime('%Y-%m-%d') if isinstance(vig_inicio, datetime) else vig_inicio
@@ -45,11 +44,21 @@ def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_con
     # Garantir que valor_contrato seja Decimal para PostgreSQL
     valor_contrato_decimal = Decimal(valor_contrato)
 
-    execute_query('''
-    INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-''', (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, passivel_renovacao))
+    # Novo contrato inicia com aditivo = 0
+    aditivo_inicial = 0
 
+    params = (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, 
+              vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, 
+              categoria, data_assinatura_str, data_publicacao_str, gestor, contato, 
+              setor, observacao, passivel_renovacao, aditivo_inicial)
+
+    print("Parâmetros:", params)  # Para verificar os valores antes de executar a consulta
+
+    # Função para inserir no banco de dados
+    execute_query('''
+    INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', params)
 # Função para atualizar um contrato
 def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao):
     # Convertendo datas para string no formato YYYY-MM-DD
