@@ -101,7 +101,7 @@ def delete_contract(id):
 # Função para obter todos os contratos
 def get_contracts():
     return fetch_query('''
-        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao FROM contracts
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo FROM contracts
     ''')
 
 def get_contract_by_id(id):

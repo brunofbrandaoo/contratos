@@ -34,6 +34,18 @@ def calculate_situation(dias_vencer, passivel_renovacao):
     else:
         return 'Vigente'
     
+def calculate_days_to_expiry(vig_fim, today):
+    """Calcula o número de dias a vencer entre vig_fim e today."""
+    if isinstance(vig_fim, datetime):
+        vig_fim_date = vig_fim  # Usando o valor correto para a data de vigência final
+    else:
+        try:
+            vig_fim_date = datetime.strptime(str(vig_fim), '%Y-%m-%d').date()
+        except ValueError:
+            print(f"Data inválida encontrada no contrato: {vig_fim}")
+            vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
+    return (vig_fim_date - today).days
+    
 def convert_to_date(value):
     """Converte o valor para uma data, se necessário."""
     if isinstance(value, datetime):
@@ -49,22 +61,17 @@ def convert_to_date(value):
 
 # Função para calcular os dados do dashboard
 def calculate_dashboard_data(contracts):
+    """Calcula a quantidade de contratos em cada situação."""
     total = len(contracts)
-    vencido = sum(1 for contract in contracts if contract[11] == 'Vencido')
-    vencer_30_60 = sum(1 for contract in contracts if contract[11] in ['Renovar', 'Novo Processo'])
-    vencer_60_90 = sum(1 for contract in contracts if contract[11] == 'Vencer 60 a 90 dias')
-    vencer_90_120 = sum(1 for contract in contracts if contract[11] == 'Vencer 90 a 120 dias')
-    vencer_120_180 = sum(1 for contract in contracts if contract[11] == 'Vencer 120 a 180 dias')
+    vencido = sum(1 for contract in contracts if contract[-1] == 'Vencido')
+    vencer_30_60 = sum(1 for contract in contracts if contract[-1] in ['Renovar', 'Novo Processo'])
+    vencer_60_90 = sum(1 for contract in contracts if contract[-1] == 'Vencer 60 a 90 dias')
+    vencer_90_120 = sum(1 for contract in contracts if contract[-1] == 'Vencer 90 a 120 dias')
+    vencer_120_180 = sum(1 for contract in contracts if contract[-1] == 'Vencer 120 a 180 dias')
     vigente = total - (vencido + vencer_30_60 + vencer_60_90 + vencer_90_120 + vencer_120_180)
     
-    vencido_percent = (vencido / total) * 100 if total else 0
-    vencer_30_60_percent = (vencer_30_60 / total) * 100 if total else 0
-    vencer_60_90_percent = (vencer_60_90 / total) * 100 if total else 0
-    vencer_90_120_percent = (vencer_90_120 / total) * 100 if total else 0
-    vencer_120_180_percent = (vencer_120_180 / total) * 100 if total else 0
-    vigente_percent = (vigente / total) * 100 if total else 0
-    
-    return total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent
+    return total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente
+
 
 def show_dashboard():
     st.markdown("<h1 style='text-align: center; margin-bottom: 48px;'>Gestão de Vigência de Contratos</h1>", unsafe_allow_html=True)
@@ -73,20 +80,28 @@ def show_dashboard():
     contracts = get_contracts()
     if contracts:
         today = datetime.today().date()
-        
-        # Ajuste para garantir que dias a vencer não diminua abaixo de 0 e que vig_fim seja uma data válida
+
+        # Calcular os dias a vencer e a situação para cada contrato
         contracts = [
             (
-                contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8],
-                contract[9],  # Outros campos
-                max(0, (convert_to_date(contract[8]) - today).days),  # Calcula dias a vencer
-                calculate_situation(max(0, (convert_to_date(contract[8]) - today).days), contract[10])  # Situação calculada
+                contract[0],  # ID do contrato
+                contract[7],  # Vigência final
+                # Ajuste para garantir que estamos usando o índice correto para vig_fim
+                calculate_days_to_expiry(contract[7], today),  # Função ajustada para calcular dias a vencer
+                calculate_situation(calculate_days_to_expiry(contract[7], today), contract[18])  # Situação calculada
             ) for contract in contracts
         ]
-        
-        total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
-        # Configuração de colunas
+        # Print para depuração (opcional)
+        print("Verificação dos Contratos:")
+        for contract in contracts:
+            print(f"ID: {contract[0]}, Vigência Final: {contract[1]}, Dias a Vencer: {contract[2]}, Situação: {contract[3]}")
+
+        # Calcular as quantidades de contratos em cada situação
+        total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente = calculate_dashboard_data(contracts)
+
+
+        # Exibir os resultados no dashboard usando a lógica existente
         col1, col2 = st.columns([1, 1])
 
         with col1:
@@ -223,7 +238,7 @@ def show_dashboard():
 
             st.markdown(list_html, unsafe_allow_html=True)
 
-        st.json(contracts[1])
+#         st.json(contracts[1])
 
     else:
         st.write("Nenhum contrato encontrado.")
