@@ -27,19 +27,46 @@ def show_contratos_vencidos():
         today = datetime.today().date()
         vencidos = []
         for contract in contracts:
-            vig_fim_date = datetime.strptime(contract[8], '%Y-%m-%d').date()
-            dias_a_vencer = max(0, (vig_fim_date - today).days)  # Garante que não decresça abaixo de 0
+            # Ajuste para converter a data de vigência final (vig_fim) corretamente
+            if isinstance(contract[7], str):
+                vig_fim_date = datetime.strptime(contract[7], '%Y-%m-%d').date()
+            elif isinstance(contract[7], datetime):
+                vig_fim_date = contract[7].date()
+            else:
+                vig_fim_date = contract[7]
+
+            # Calcular dias a vencer e garantir que não seja negativo
+            dias_a_vencer = max(0, (vig_fim_date - today).days)
+
+            # Calcular a situação
             situacao_calculada = calculate_situation(dias_a_vencer)
+
+            # Adicionar apenas os contratos na situação "Vencido"
             if situacao_calculada == 'Vencido':
                 link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
+
+                # Formatação das datas e valores
+                vig_inicio_formatada = datetime.strptime(contract[6], '%Y-%m-%d').strftime('%d/%m/%Y') if isinstance(contract[6], str) else contract[6].strftime('%d/%m/%Y')
+                vig_fim_formatada = vig_fim_date.strftime('%d/%m/%Y')
+                valor_formatado = f"R$ {float(contract[5]):,.1f}"  # Formata com uma casa decimal e separador de milhar
+
                 vencidos.append(
                     (
-                        contract[2], contract[3], contract[4], 
-                        contract[6], contract[7], contract[8], dias_a_vencer, situacao_calculada, 
-                        contract[11], contract[24], link_detalhes
+                        contract[2],  # Número do Contrato
+                        contract[3],  # Fornecedor
+                        contract[4],  # Objeto
+                        valor_formatado,  # Valor do Contrato formatado
+                        vig_inicio_formatada,  # Vigência Início formatada
+                        vig_fim_formatada,  # Vigência Fim formatada
+                        dias_a_vencer,  # Dias a Vencer
+                        situacao_calculada,  # Situação
+                        contract[18],  # Aditivo
+                        contract[16],  # Movimentação
+                        link_detalhes  # Link para detalhes
                     )
                 )
-        
+
+        # Exibir os dados na tabela usando pandas DataFrame
         df = pd.DataFrame(
             vencidos, 
             columns=[
@@ -49,13 +76,15 @@ def show_contratos_vencidos():
             ]
         )
 
-        # Aplicar cor preta para todas as células da coluna Situação
+        # Aplicar cor preta para todas as células da coluna Situação onde a situação é "Vencido"
         def color_situation(val):
-            return 'background-color: black; color: white'
+            color = 'background-color: black; color: white' if val == 'Vencido' else ''
+            return color
 
+        # Aplicar o estilo condicional para a coluna de situação
         styled_df = df.style.applymap(color_situation, subset=['Situação'])
-        
-        # Configurar a coluna de links
+
+        # Configurar a coluna de links e exibir a tabela formatada no Streamlit
         st.dataframe(
             styled_df,
             column_config={
@@ -77,7 +106,8 @@ def show_contratos_vencidos():
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
-    dias_vencer = max(0, dias_vencer)  # Garante que não decresça abaixo de 0
+    # Garante que não decresça abaixo de 0
+    dias_vencer = max(0, dias_vencer)
     if dias_vencer == 0:
         return 'Vencido'
     elif dias_vencer <= 30:

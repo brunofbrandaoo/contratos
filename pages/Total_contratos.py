@@ -345,7 +345,7 @@ def show_aditivo_details(contract_id):
             <h3 style="color: #4a5568; text-align: center; margin-bottom: 20px; font-size: 24px;">Detalhes dos Aditivos</h3>
         """, unsafe_allow_html=True)
 
-        for i, aditivo in enumerate(aditivos, 1):
+        for i, aditivo in enumerate(aditivos, 1):  # `i` começa em 1 e incrementa com cada iteração
             st.markdown(f"""
             <div style="
                 background-color: #ffffff; 
@@ -377,7 +377,7 @@ def show_aditivo_details(contract_id):
                     font-size: 18px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 ">
-                    {aditivo[2]}
+                    {i}  <!-- Aqui usamos `i` para numerar cada aditivo -->
                 </div>
                 <div style="flex: 1; min-width: 250px; margin-right: 20px;">
                     <p style="margin: 0; font-size: 18px;"><strong>Número do Aditivo:</strong> {aditivo[5]}</p>
@@ -407,6 +407,12 @@ def contract_details_page(contract_id):
             data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao, aditivo
         ) = contract
 
+         # Formatar as datas no formato dia/mês/ano
+        vig_inicio_formatada = vig_inicio.strftime('%d/%m/%Y') if isinstance(vig_inicio, date) else vig_inicio
+        vig_fim_formatada = vig_fim.strftime('%d/%m/%Y') if isinstance(vig_fim, date) else vig_fim
+        data_assinatura_formatada = data_assinatura.strftime('%d/%m/%Y') if isinstance(data_assinatura, date) else data_assinatura
+        data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if isinstance(data_publicacao, date) else data_publicacao
+
         dias_vencer = calculate_days_to_expiry(vig_fim)
         situacao = calculate_situation(dias_vencer, passivel_renovacao)
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
@@ -427,22 +433,22 @@ def contract_details_page(contract_id):
                 <strong>Fornecedor:</strong> {fornecedor}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Valor do Contrato:</strong> {valor_contrato}
+                <strong>Valor do Contrato:</strong> {valor_contrato:.2f}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Vigência Início:</strong> {vig_inicio}
+                <strong>Vigência Início:</strong> {vig_inicio_formatada}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Vigência Fim:</strong> {vig_fim}
+                <strong>Vigência Fim:</strong> {vig_fim_formatada}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Prazo Limite (anos):</strong> {prazo_limite}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Data de Assinatura:</strong> {data_assinatura}
+                <strong>Data de Assinatura:</strong> {data_assinatura_formatada}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Data de Publicação:</strong> {data_publicacao}
+                <strong>Data de Publicação:</strong> {data_publicacao_formatada}
             </div>
             <div style="{color_situation(situacao)}; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Situação:</strong> {situacao}
@@ -561,10 +567,13 @@ def show_planilha():
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
 
+            vig_inicio_formatada = contract[6].strftime('%d-%m-%Y') if isinstance(contract[6], date) else contract[6]
+            vig_fim_formatada = vig_fim_date.strftime('%d-%m-%Y')
+
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
-                    contract[5], contract[6], vig_fim_date, dias_a_vencer, situacao_calculada, 
+                    contract[5], vig_inicio_formatada, vig_fim_formatada, dias_a_vencer, situacao_calculada, 
                     contract[17], link_detalhes
                 )
             )
@@ -588,8 +597,6 @@ def show_planilha():
             },
             hide_index=True,
         )
-
-        st.json(contracts[0])
     else:
         st.write("Nenhum contrato encontrado.")
 
