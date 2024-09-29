@@ -569,11 +569,12 @@ def show_planilha():
 
             vig_inicio_formatada = contract[6].strftime('%d-%m-%Y') if isinstance(contract[6], date) else contract[6]
             vig_fim_formatada = vig_fim_date.strftime('%d-%m-%Y')
+            valor_formatado = f"R$ {float(contract[5]):,.1f}" 
 
             transformed_contracts.append(
                 (
                     contract[2], contract[3], contract[4], 
-                    contract[5], vig_inicio_formatada, vig_fim_formatada, dias_a_vencer, situacao_calculada, 
+                    valor_formatado, vig_inicio_formatada, vig_fim_formatada, dias_a_vencer, situacao_calculada, 
                     contract[17], link_detalhes
                 )
             )
