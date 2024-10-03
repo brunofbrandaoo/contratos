@@ -38,8 +38,8 @@ def show_vencer_30_60():
             else:
                 vig_fim_date = contract[7]  # Caso já seja um `datetime.date`
 
-            # Calcula o número de dias a vencer
-            dias_a_vencer = (vig_fim_date - today).days
+            # Calcula o número de dias a vencer e define como zero se for menor que 0
+            dias_a_vencer = max(0, (vig_fim_date - today).days)
             passivel_renovacao = contract[18]  # Ajustado conforme o campo `passivel_renovacao` na query SQL
 
             # Calcula a situação do contrato com base no prazo e se é passível de renovação
@@ -101,15 +101,15 @@ def show_vencer_30_60():
 
 # Função para calcular a situação do contrato considerando o campo passível de renovação
 def calculate_situation(dias_vencer, passivel_renovacao):
-    if dias_vencer < 0:
+    if dias_vencer <= 0:
         return 'Vencido'
-    elif 1 < dias_vencer <= 60:
+    elif 1 <= dias_vencer <= 60:
         return 'Renovar' if passivel_renovacao == 1 else 'Novo Processo'
-    elif 60 <= dias_vencer <= 90:
+    elif 60 < dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
-    elif 90 <= dias_vencer <= 120:
+    elif 90 < dias_vencer <= 120:
         return 'Vencer 90 a 120 dias'
-    elif 120 <= dias_vencer <= 180:
+    elif 120 < dias_vencer <= 180:
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'

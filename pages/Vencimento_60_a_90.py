@@ -31,7 +31,7 @@ def show_vencer_60_90():
         vencer_60_90 = []
 
         for contract in contracts:
-            # Verificar se `contract[7]` é uma string e converter para `datetime.date` se necessário
+            # Verificar o tipo de `contract[7]` e converter para `datetime.date` se necessário
             if isinstance(contract[7], str):
                 vig_fim_date = datetime.strptime(contract[7], '%Y-%m-%d').date()
             elif isinstance(contract[7], datetime):
@@ -39,8 +39,8 @@ def show_vencer_60_90():
             else:
                 vig_fim_date = contract[7]  # Caso já seja um `datetime.date`
 
-            # Calcular o número de dias a vencer
-            dias_a_vencer = (vig_fim_date - today).days
+            # Calcular o número de dias a vencer e definir como zero se for menor que 0
+            dias_a_vencer = max(0, (vig_fim_date - today).days)
 
             # Calcular a situação com base nos dias a vencer
             situacao_calculada = calculate_situation(dias_a_vencer)
@@ -111,15 +111,15 @@ def show_vencer_60_90():
 
 # Função para calcular a situação do contrato considerando o número de dias a vencer
 def calculate_situation(dias_vencer):
-    if dias_vencer < 0:
+    if dias_vencer <= 0:
         return 'Vencido'
-    elif 30 <= dias_vencer <= 60:
+    elif 1 <= dias_vencer < 60:
         return 'Renovar'
     elif 60 <= dias_vencer <= 90:
         return 'Vencer 60 a 90 dias'
-    elif 90 <= dias_vencer <= 120:
+    elif 90 < dias_vencer <= 120:
         return 'Vencer 90 a 120 dias'
-    elif 120 <= dias_vencer <= 180:
+    elif 120 < dias_vencer <= 180:
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'

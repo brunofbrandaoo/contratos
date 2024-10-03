@@ -35,11 +35,14 @@ def show_contratos_vencidos():
             else:
                 vig_fim_date = contract[7]
 
-            # Calcular dias a vencer e garantir que não seja negativo
-            dias_a_vencer = max(0, (vig_fim_date - today).days)
+            # Calcular dias a vencer (pode ser negativo se já estiver vencido)
+            dias_a_vencer = (vig_fim_date - today).days
 
-            # Calcular a situação
+            # Determinar a situação do contrato
             situacao_calculada = calculate_situation(dias_a_vencer)
+
+            # Definir `dias_a_vencer` como 0 se o valor for negativo, apenas para exibição
+            dias_a_vencer_exibicao = max(0, dias_a_vencer)
 
             # Adicionar apenas os contratos na situação "Vencido"
             if situacao_calculada == 'Vencido':
@@ -58,7 +61,7 @@ def show_contratos_vencidos():
                         valor_formatado,  # Valor do Contrato formatado
                         vig_inicio_formatada,  # Vigência Início formatada
                         vig_fim_formatada,  # Vigência Fim formatada
-                        dias_a_vencer,  # Dias a Vencer
+                        dias_a_vencer_exibicao,  # Exibir 0 para contratos vencidos
                         situacao_calculada,  # Situação
                         contract[18],  # Aditivo
                         contract[16],  # Movimentação
@@ -106,9 +109,8 @@ def show_contratos_vencidos():
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer):
-    # Garante que não decresça abaixo de 0
-    dias_vencer = max(0, dias_vencer)
-    if dias_vencer == 0:
+    # Se o número de dias for menor que zero, o contrato está vencido
+    if dias_vencer < 0:
         return 'Vencido'
     elif dias_vencer <= 30:
         return 'Renovar'

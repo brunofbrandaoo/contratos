@@ -65,7 +65,7 @@ def calculate_days_to_expiry(vig_fim):
     vig_fim (datetime.date | str): Data de término da vigência do contrato como string no formato 'YYYY-MM-DD' ou como datetime.date.
 
     Returns:
-    int: Número de dias restantes até o vencimento. Se já estiver vencido, retorna um valor negativo.
+    int: Número de dias restantes até o vencimento. Se já estiver vencido, retorna 0.
     """
     # Se `vig_fim` já for um objeto datetime.date, converte para string no formato necessário
     if isinstance(vig_fim, date):
@@ -80,7 +80,9 @@ def calculate_days_to_expiry(vig_fim):
     # Calcular a diferença em dias
     dias_restantes = (vig_fim_date - hoje).days
     
-    return dias_restantes
+    # Garante que não decresça abaixo de 0
+    return max(0, dias_restantes)
+
 
 # Função para aplicar cores com base na situação
 def color_situation(val):
@@ -549,25 +551,22 @@ def show_planilha():
         transformed_contracts = []
 
         for contract in contracts:
-            print(f"Processando contrato: {contract}")  # Debug do contrato atual
-
-            # Aqui ajustamos para garantir que estamos usando o índice correto para vig_fim
+            # Garantir que estamos usando o índice correto para vig_fim
             if isinstance(contract[7], datetime):
-                vig_fim_date = contract[7]  # Usando o valor correto para a data de vigência final
+                vig_fim_date = contract[7]
             else:
                 try:
                     vig_fim_date = datetime.strptime(str(contract[7]), '%Y-%m-%d').date()
                 except ValueError:
-                    print(f"Data inválida encontrada no contrato: {contract[7]}")
                     vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
 
-            # Calcula o número de dias a vencer
-            dias_a_vencer = (vig_fim_date - today).days
-            print(f"Dias a vencer calculado: {dias_a_vencer} para vigência final em {vig_fim_date}")
+            # Calcula o número de dias a vencer e garante que não seja menor que 0
+            dias_a_vencer = max(0, (vig_fim_date - today).days)
 
-            passivel_renovacao = contract[18]  
+            passivel_renovacao = contract[18]
             situacao_calculada = calculate_situation(dias_a_vencer, passivel_renovacao)
             link_detalhes = f"{url_base}/Total_contratos?page=details&contract_id={contract[0]}"
+
 
             vig_inicio_formatada = contract[6].strftime('%d-%m-%Y') if isinstance(contract[6], date) else contract[6]
             vig_fim_formatada = vig_fim_date.strftime('%d-%m-%Y')
