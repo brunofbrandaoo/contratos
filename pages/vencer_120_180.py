@@ -18,6 +18,8 @@ st.sidebar.page_link("pages/vencer_90_120.py", label="Contratos com vencimento d
 st.sidebar.page_link("pages/vencer_120_180.py", label="Contratos com vencimento de 120 a 180 dias", icon="🟦")
 st.sidebar.page_link("pages/Contratos_vencidos.py", label="Contratos vencidos", icon="⬛")
 
+st.logo(image="sudema.png", link=None)
+
 def show_vencer_120_180():
     st.title('Contratos a Vencer em 120 a 180 Dias')
 
