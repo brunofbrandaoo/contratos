@@ -164,13 +164,13 @@ def show_dashboard():
         with col2:
             # Exibir gráfico de barras
             df = pd.DataFrame({
-                'Situação': ['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                'Situação': ['Vencido', 'Vencer em até 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
                 'Quantidade': [vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente]
             })
 
             # Mapa de cores
             color_scale = alt.Scale(
-                domain=['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                domain=['Vencido', 'Vencer em até 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
                 range=['#343a40', '#ff0000', '#fe843d', '#ffc107', '#054f77', '#38761d']
             )
 
@@ -189,56 +189,6 @@ def show_dashboard():
 
             # Exibir o gráfico no Streamlit
             st.altair_chart(chart, use_container_width=True)
-
-            # Ordenando os contratos com base no penúltimo elemento (dias a vencer)
-            contracts_sorted_by_days = sorted(
-                [contract for contract in contracts if contract[-2] > 0], 
-                key=lambda x: x[-2]
-)
-
-            # Extraindo os valores dos terceiros elementos e penúltimos elementos
-            if len(contracts_sorted_by_days) >= 3:
-                # Extraindo os valores dos terceiros elementos e penúltimos elementos
-                numero_contrato_1 = contracts_sorted_by_days[0][2]
-                dias_a_vencer_1 = contracts_sorted_by_days[0][-2]
-                fornecedor_1 = contracts_sorted_by_days[0][3]
-
-                numero_contrato_2 = contracts_sorted_by_days[1][2]
-                dias_a_vencer_2 = contracts_sorted_by_days[1][-2]
-                fornecedor_2 = contracts_sorted_by_days[1][3]
-
-                numero_contrato_3 = contracts_sorted_by_days[2][2]
-                dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
-                fornecedor_3 = contracts_sorted_by_days[2][3]
-
-            # Exibir os valores em uma lista HTML e CSS estilizada
-            list_html = f"""
-            <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="color: #dc3545; margin-bottom: 20px;">Urgências para Renovação</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_1}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_1}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}</div>
-                    </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_2}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_2}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}</div>
-                    </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_3}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_3}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}</div>
-                    </li>
-                </ul>
-            </div>
-
-            """
-
-            st.markdown(list_html, unsafe_allow_html=True)
-
-#         st.json(contracts[1])
 
     else:
         st.write("Nenhum contrato encontrado.")
