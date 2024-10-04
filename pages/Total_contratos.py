@@ -117,7 +117,7 @@ def add_contract_dialog():
     numero_contrato = st.text_input("Número do Contrato")
     fornecedor = st.text_input("Fornecedor do Contrato")
     objeto = st.text_input("Objeto")
-    valor_contrato = st.number_input("Valor do Contrato", step=1000.00, min_value=0.0)
+    valor_contrato = st.number_input("Valor do Contrato", step=10.00, min_value=0.0)
     vig_inicio = st.date_input("Vigência Início")
     vig_fim = st.date_input("Vigência Fim")
     passivel_renovacao = st.selectbox("Passível de Renovação", [0, 1], format_func=lambda x: "Sim" if x == 1 else "Não, Novo Processo")
@@ -246,8 +246,9 @@ def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contra
 @st.experimental_dialog(title="Editar Contrato")
 def edit_contract_dialog(contract):
     (id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
-                    modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
-                    passivel_renovacao, aditivo) = contract
+ modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+ passivel_renovacao, aditivo, vig_final_contrato) = contract
+
 
     st.write(f"**Editando Contrato:** {numero_contrato}")
 
@@ -261,7 +262,7 @@ def edit_contract_dialog(contract):
     novo_valor_contrato = st.number_input(
         "Valor do Contrato", 
         value=float(valor_contrato),  # Converte para float
-        step=1000.00, 
+        step=10.00, 
         min_value=0.0, 
         key=f"valor_contrato_{id}"
     )
@@ -423,6 +424,15 @@ def show_aditivo_details(contract_id):
     else:
         st.info("Este contrato ainda não possui aditivos.")
 
+def calculate_time_remaining(vig_inicio, prazo_limite):
+    if isinstance(vig_inicio, str):
+        vig_inicio = datetime.strptime(vig_inicio, '%Y-%m-%d')
+        
+    end_date = vig_inicio + timedelta(days=prazo_limite * 365)  # Calcula a data final com base no prazo
+    remaining_days = (end_date - datetime.now()).days  # Calcula os dias restantes
+
+    return remaining_days
+
 
 def contract_details_page(contract_id):
     contract = get_contract_by_id(contract_id)
@@ -443,6 +453,15 @@ def contract_details_page(contract_id):
         dias_vencer = calculate_days_to_expiry(vig_fim)
         situacao = calculate_situation(dias_vencer, passivel_renovacao)
         passivel_renovacao_texto = "Sim" if passivel_renovacao == 1 else "Não"
+
+        days_remaining = calculate_time_remaining(str(vig_inicio), prazo_limite)
+
+        # Exibir contagem regressiva com `st.metric`
+        # st.metric("Dias Restantes para o Prazo Limite", days_remaining, delta=-1, delta_color="inverse")
+
+        # Exibir o progresso restante (opcional)
+        progress_percentage = max(0, (days_remaining / (prazo_limite * 365)) * 100)
+        # st.progress(int(progress_percentage))
 
         st.markdown(f"""
 <div style="background-color: #f8f9fa; padding: 30px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);">
@@ -514,6 +533,11 @@ def contract_details_page(contract_id):
     </div>
 </div>
 """, unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+
+        st.metric(label="Prazo limite do contrato", value=f'{days_remaining} dias', delta=-1, delta_color="normal")
+        st.progress(int(progress_percentage))
         
         st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
 
