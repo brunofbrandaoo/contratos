@@ -623,7 +623,9 @@ def show_planilha():
                 (
                     contract[2], contract[3], contract[4], 
                     valor_formatado, vig_inicio_formatada, vig_fim_formatada, dias_a_vencer, situacao_calculada, 
-                    contract[17], link_detalhes
+                    contract[19],  # Aditivo
+                        contract[16],  # Movimentação
+                        link_detalhes
                 )
             )
         
@@ -631,14 +633,14 @@ def show_planilha():
             transformed_contracts, 
             columns=[
                 'Número do Contrato', 'Fornecedor', 'Objeto', 
-                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 'Movimentação', 'Detalhes'
+                'Valor do Contrato', 'Vigência Início', 'Vigência Fim', 'Dias a Vencer', 'Situação', 'Aditivo', 'Movimentação', 'Detalhar'
             ]
         )
         
         st.dataframe(
             df.style.applymap(color_situation, subset=['Situação']),
             column_config={
-                "Detalhes": st.column_config.LinkColumn(
+                "Detalhar": st.column_config.LinkColumn(
                     "Detalhes",
                     help="Clique para ver os detalhes do contrato",
                     display_text="Detalhar"

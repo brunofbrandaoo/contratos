@@ -65,7 +65,7 @@ def show_vencer_120_180():
                         contract[8],  # Prazo Limite
                         dias_a_vencer,  # Dias a Vencer
                         situacao_calculada,  # Situação
-                        contract[18],  # Aditivo
+                        contract[19],  # Aditivo
                         contract[16],  # Movimentação
                         link_detalhes  # Link para detalhes
                     )

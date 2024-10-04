@@ -63,7 +63,7 @@ def show_contratos_vencidos():
                         vig_fim_formatada,  # Vigência Fim formatada
                         dias_a_vencer_exibicao,  # Exibir 0 para contratos vencidos
                         situacao_calculada,  # Situação
-                        contract[18],  # Aditivo
+                        contract[19],  # Aditivo
                         contract[16],  # Movimentação
                         link_detalhes  # Link para detalhes
                     )
