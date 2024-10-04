@@ -33,25 +33,45 @@ def calculate_situation(dias_vencer, passivel_renovacao):
         return 'Vencer 120 a 180 dias'
     else:
         return 'Vigente'
+    
+def calculate_days_to_expiry(vig_fim, today):
+    """Calcula o número de dias a vencer entre vig_fim e today."""
+    if isinstance(vig_fim, datetime):
+        vig_fim_date = vig_fim  # Usando o valor correto para a data de vigência final
+    else:
+        try:
+            vig_fim_date = datetime.strptime(str(vig_fim), '%Y-%m-%d').date()
+        except ValueError:
+            print(f"Data inválida encontrada no contrato: {vig_fim}")
+            vig_fim_date = today  # Se a conversão falhar, use a data de hoje como fallback
+    return (vig_fim_date - today).days
+    
+def convert_to_date(value):
+    """Converte o valor para uma data, se necessário."""
+    if isinstance(value, datetime):
+        return value.date()  # Se já for datetime, retorna a data
+    elif isinstance(value, str):
+        try:
+            return datetime.strptime(value, '%Y-%m-%d').date()  # Tenta converter de string para datetime
+        except ValueError:
+            return datetime.today().date()  # Se falhar, usa a data de hoje como fallback
+    else:
+        return datetime.today().date()  # Se for outro tipo, usa a data de hoje como fallback
+
 
 # Função para calcular os dados do dashboard
 def calculate_dashboard_data(contracts):
+    """Calcula a quantidade de contratos em cada situação."""
     total = len(contracts)
-    vencido = sum(1 for contract in contracts if contract[11] == 'Vencido')
-    vencer_30_60 = sum(1 for contract in contracts if contract[11] in ['Renovar', 'Novo Processo'])
-    vencer_60_90 = sum(1 for contract in contracts if contract[11] == 'Vencer 60 a 90 dias')
-    vencer_90_120 = sum(1 for contract in contracts if contract[11] == 'Vencer 90 a 120 dias')
-    vencer_120_180 = sum(1 for contract in contracts if contract[11] == 'Vencer 120 a 180 dias')
+    vencido = sum(1 for contract in contracts if contract[-1] == 'Vencido')
+    vencer_30_60 = sum(1 for contract in contracts if contract[-1] in ['Renovar', 'Novo Processo'])
+    vencer_60_90 = sum(1 for contract in contracts if contract[-1] == 'Vencer 60 a 90 dias')
+    vencer_90_120 = sum(1 for contract in contracts if contract[-1] == 'Vencer 90 a 120 dias')
+    vencer_120_180 = sum(1 for contract in contracts if contract[-1] == 'Vencer 120 a 180 dias')
     vigente = total - (vencido + vencer_30_60 + vencer_60_90 + vencer_90_120 + vencer_120_180)
     
-    vencido_percent = (vencido / total) * 100 if total else 0
-    vencer_30_60_percent = (vencer_30_60 / total) * 100 if total else 0
-    vencer_60_90_percent = (vencer_60_90 / total) * 100 if total else 0
-    vencer_90_120_percent = (vencer_90_120 / total) * 100 if total else 0
-    vencer_120_180_percent = (vencer_120_180 / total) * 100 if total else 0
-    vigente_percent = (vigente / total) * 100 if total else 0
-    
-    return total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent
+    return total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente
+
 
 def show_dashboard():
     st.markdown("<h1 style='text-align: center; margin-bottom: 48px;'>Gestão de Vigência de Contratos</h1>", unsafe_allow_html=True)
@@ -60,17 +80,28 @@ def show_dashboard():
     contracts = get_contracts()
     if contracts:
         today = datetime.today().date()
-        # Ajuste para garantir que dias a vencer não diminua abaixo de 0
+
+        # Calcular os dias a vencer e a situação para cada contrato
         contracts = [
             (
-                contract[0], contract[1], contract[2], contract[3], contract[4], contract[5], contract[6], contract[7], contract[8], 
-                contract[9], max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), 
-                calculate_situation(max(0, (datetime.strptime(contract[8], '%Y-%m-%d').date() - today).days), contract[10])
+                contract[0],  # ID do contrato
+                contract[7],  # Vigência final
+                # Ajuste para garantir que estamos usando o índice correto para vig_fim
+                calculate_days_to_expiry(contract[7], today),  # Função ajustada para calcular dias a vencer
+                calculate_situation(calculate_days_to_expiry(contract[7], today), contract[18])  # Situação calculada
             ) for contract in contracts
         ]
-        total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente, vencido_percent, vencer_30_60_percent, vencer_60_90_percent, vencer_90_120_percent, vencer_120_180_percent, vigente_percent = calculate_dashboard_data(contracts)
 
-        # Configuração de colunas
+        # Print para depuração (opcional)
+        print("Verificação dos Contratos:")
+        for contract in contracts:
+            print(f"ID: {contract[0]}, Vigência Final: {contract[1]}, Dias a Vencer: {contract[2]}, Situação: {contract[3]}")
+
+        # Calcular as quantidades de contratos em cada situação
+        total, vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente = calculate_dashboard_data(contracts)
+
+
+        # Exibir os resultados no dashboard usando a lógica existente
         col1, col2 = st.columns([1, 1])
 
         with col1:
@@ -133,13 +164,13 @@ def show_dashboard():
         with col2:
             # Exibir gráfico de barras
             df = pd.DataFrame({
-                'Situação': ['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                'Situação': ['Vencido', 'Vencer em até 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
                 'Quantidade': [vencido, vencer_30_60, vencer_60_90, vencer_90_120, vencer_120_180, vigente]
             })
 
             # Mapa de cores
             color_scale = alt.Scale(
-                domain=['Vencido', 'Vencer 30 a 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
+                domain=['Vencido', 'Vencer em até 60 dias', 'Vencer 60 a 90 dias', 'Vencer 90 a 120 dias', 'Vencer 120 a 180 dias', 'Vigente'],
                 range=['#343a40', '#ff0000', '#fe843d', '#ffc107', '#054f77', '#38761d']
             )
 
@@ -158,54 +189,6 @@ def show_dashboard():
 
             # Exibir o gráfico no Streamlit
             st.altair_chart(chart, use_container_width=True)
-
-            # Ordenando os contratos com base no penúltimo elemento (dias a vencer)
-            contracts_sorted_by_days = sorted(
-                [contract for contract in contracts if contract[-2] > 0], 
-                key=lambda x: x[-2]
-)
-
-            # Extraindo os valores dos terceiros elementos e penúltimos elementos
-            if len(contracts_sorted_by_days) >= 3:
-                # Extraindo os valores dos terceiros elementos e penúltimos elementos
-                numero_contrato_1 = contracts_sorted_by_days[0][2]
-                dias_a_vencer_1 = contracts_sorted_by_days[0][-2]
-                fornecedor_1 = contracts_sorted_by_days[0][3]
-
-                numero_contrato_2 = contracts_sorted_by_days[1][2]
-                dias_a_vencer_2 = contracts_sorted_by_days[1][-2]
-                fornecedor_2 = contracts_sorted_by_days[1][3]
-
-                numero_contrato_3 = contracts_sorted_by_days[2][2]
-                dias_a_vencer_3 = contracts_sorted_by_days[2][-2]
-                fornecedor_3 = contracts_sorted_by_days[2][3]
-
-            # Exibir os valores em uma lista HTML e CSS estilizada
-            list_html = f"""
-            <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="color: #dc3545; margin-bottom: 20px;">Urgências para Renovação</h3>
-                <ul style="list-style-type: none; padding-left: 0;">
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_1}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_1}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_1}</div>
-                    </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_2}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_2}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_2}</div>
-                    </li>
-                    <li style="margin-bottom: 10px; padding: 15px; background-color: white; border-radius: 4px; border-left: 5px solid #dc3545; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column;">
-                        <div><strong>Contrato:</strong> {numero_contrato_3}</div>
-                        <div><strong style="color: #000;">Fornecedor:</strong> {fornecedor_3}</div>
-                        <div><strong style="color: #dc3545;">Dias a Vencer:</strong> {dias_a_vencer_3}</div>
-                    </li>
-                </ul>
-            </div>
-
-            """
-
-            st.markdown(list_html, unsafe_allow_html=True)
 
     else:
         st.write("Nenhum contrato encontrado.")

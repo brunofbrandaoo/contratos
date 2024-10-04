@@ -1,118 +1,140 @@
-import sqlite3
+import psycopg2
+from psycopg2 import sql
 from datetime import datetime
+from decimal import Decimal
+import streamlit as st
 
-def init_db():
-    conn = sqlite3.connect('contracts.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS contracts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero_processo TEXT,
-            numero_contrato TEXT,
-            objeto TEXT,
-            fornecedor TEXT,
-            situacao TEXT,
-            valor_contrato REAL CHECK(valor_contrato >= 0),
-            vig_inicio DATE,
-            vig_fim DATE,
-            prazo_limite INTEGER CHECK(prazo_limite BETWEEN 1 AND 5),
-            dias_vencer INTEGER CHECK(dias_vencer >= 0),
-            aditivo TEXT,
-            prox_passo TEXT,
-            modalidade TEXT,
-            amparo_legal TEXT,
-            categoria TEXT,
-            data_assinatura DATE,
-            data_publicacao DATE,
-            itens TEXT,
-            quantidade INTEGER CHECK(quantidade >= 0),
-            gestor TEXT,
-            contato TEXT,
-            setor TEXT,
-            observacao TEXT,
-            acompanhamento TEXT,
-            passivel_renovacao INTEGER CHECK(passivel_renovacao IN (0, 1))
-        )
-    ''')
 
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS aditivos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        contract_id INTEGER,
-        numero_aditivo INTEGER,
-        nova_vig_fim DATE,
-        novo_valor_contrato REAL,
-        codigo_aditivo INTEGER,               -- Novo campo
-        objeto_aditivo TEXT,               -- Novo campo
-        data_assinatura_aditivo DATE,      -- Novo campo
-        data_publicacao_aditivo DATE,      -- Novo campo
-        FOREIGN KEY (contract_id) REFERENCES contracts (id)
+host = st.secrets["general"]["host"]
+database = st.secrets["general"]["database"]
+user = st.secrets["general"]["user"]
+password = st.secrets["general"]["password"]
+
+
+# Função para criar a conexão com o banco de dados Supabase
+def connect_db():
+    return psycopg2.connect(
+        host=host,
+        database=database,
+        user=user,
+        password=password
     )
-''')
-
-
-    conn.commit()
-    conn.close()
 
 def execute_query(query, params=()):
-    conn = sqlite3.connect('contracts.db')
+    print("Executing query:", query)
+    print("With parameters:", params)
+    conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(query, params)
     conn.commit()
+    cursor.close()
     conn.close()
 
+
 def fetch_query(query, params=()):
-    conn = sqlite3.connect('contracts.db')
+    conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(query, params)
     result = cursor.fetchall()
+    cursor.close()
     conn.close()
     return result
 
-def add_contract(numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao):
-    dias_vencer = max(0, dias_vencer)  # Garante que o valor de dias a vencer não seja negativo
-    execute_query('''
-        INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao))
 
-def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao):
-    dias_vencer = max(0, dias_vencer)  # Garante que o valor de dias a vencer não seja negativo
+def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, vig_final_contrato):
+
+    # Convertendo datas para string no formato YYYY-MM-DD
+    vig_inicio_str = vig_inicio.strftime('%Y-%m-%d') if isinstance(vig_inicio, datetime) else vig_inicio
+    vig_fim_str = vig_fim.strftime('%Y-%m-%d') if isinstance(vig_fim, datetime) else vig_fim
+    data_assinatura_str = data_assinatura.strftime('%Y-%m-%d') if isinstance(data_assinatura, datetime) else data_assinatura
+    data_publicacao_str = data_publicacao.strftime('%Y-%m-%d') if isinstance(data_publicacao, datetime) else data_publicacao
+    vig_final_contrato_str = vig_final_contrato.strftime('%Y-%m-%d') if isinstance(vig_final_contrato, datetime) else vig_final_contrato
+
+    # Garantir que valor_contrato seja Decimal para PostgreSQL
+    valor_contrato_decimal = Decimal(valor_contrato)
+
+    # Novo contrato inicia com aditivo = 0
+    aditivo_inicial = 0
+
+    params = (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, 
+              vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, 
+              categoria, data_assinatura_str, data_publicacao_str, gestor, contato, 
+              setor, observacao, passivel_renovacao, aditivo_inicial, vig_final_contrato_str)
+
+    print("Parâmetros:", params)  # Para verificar os valores antes de executar a consulta
+
+    # Função para inserir no banco de dados
+    execute_query('''
+    INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo, vig_final_contrato)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', params)
+
+# Função para atualizar um contrato
+def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+                    modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+                    passivel_renovacao, aditivo):
+    """
+    Atualiza os detalhes de um contrato no banco de dados.
+
+    Parameters:
+    id (int): ID do contrato a ser atualizado.
+    Todos os outros parâmetros correspondem às colunas da tabela `contracts`.
+    """
+    # Convertendo datas para string no formato YYYY-MM-DD, caso sejam objetos datetime
+    vig_inicio_str = vig_inicio.strftime('%Y-%m-%d') if isinstance(vig_inicio, datetime) else vig_inicio
+    vig_fim_str = vig_fim.strftime('%Y-%m-%d') if isinstance(vig_fim, datetime) else vig_fim
+    data_assinatura_str = data_assinatura.strftime('%Y-%m-%d') if isinstance(data_assinatura, datetime) else data_assinatura
+    data_publicacao_str = data_publicacao.strftime('%Y-%m-%d') if isinstance(data_publicacao, datetime) else data_publicacao
+
+    # Garantir que valor_contrato seja Decimal para PostgreSQL
+    valor_contrato_decimal = Decimal(valor_contrato)
+
+    # Garantir que `aditivo` seja um valor inteiro
+    aditivo_int = int(aditivo) if aditivo is not None else 0
+
+    # Atualiza o contrato incluindo a coluna `aditivo`
     execute_query('''
         UPDATE contracts
-        SET numero_processo = ?, numero_contrato = ?, fornecedor = ?, objeto = ?, situacao = ?, valor_contrato = ?, vig_inicio = ?, vig_fim = ?, prazo_limite = ?, dias_vencer = ?, aditivo = ?, prox_passo = ?, modalidade = ?, amparo_legal = ?, categoria = ?, data_assinatura = ?, data_publicacao = ?, itens = ?, quantidade = ?, gestor = ?, contato = ?, setor = ?, observacao = ?, acompanhamento = ?, passivel_renovacao = ?
-        WHERE id = ?
-    ''', (numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao, id))
-    
+        SET numero_processo = %s, numero_contrato = %s, fornecedor = %s, objeto = %s, valor_contrato = %s, vig_inicio = %s, 
+            vig_fim = %s, prazo_limite = %s, modalidade = %s, amparo_legal = %s, categoria = %s, data_assinatura = %s, 
+            data_publicacao = %s, gestor = %s, contato = %s, setor = %s, observacao = %s, passivel_renovacao = %s, aditivo = %s
+        WHERE id = %s
+    ''', (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, vig_inicio_str, vig_fim_str, prazo_limite, 
+          modalidade, amparo_legal, categoria, data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, 
+          passivel_renovacao, aditivo_int, id))
+# Função para excluir um contrato
 def delete_contract(id):
     execute_query('''
-        DELETE FROM contracts WHERE id = ?
+        DELETE FROM contracts WHERE id = %s
     ''', (id,))
 
+# Função para obter todos os contratos
 def get_contracts():
     return fetch_query('''
-        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao FROM contracts
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo FROM contracts
     ''')
 
 def get_contract_by_id(id):
     result = fetch_query('''
-        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, situacao, valor_contrato, vig_inicio, vig_fim, prazo_limite, dias_vencer, aditivo, prox_passo, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, itens, quantidade, gestor, contato, setor, observacao, acompanhamento, passivel_renovacao 
-        FROM contracts WHERE id = ?
+        SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
+               modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
+               passivel_renovacao, aditivo, vig_final_contrato
+        FROM contracts WHERE id = %s
     ''', (id,))
     return result[0] if result else None
 
+# Função para adicionar um aditivo
 def add_aditivo(contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo):
     execute_query('''
         INSERT INTO aditivos (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     ''', (contract_id, numero_aditivo, nova_vig_fim, novo_valor_contrato, codigo_aditivo, objeto_aditivo, data_assinatura_aditivo, data_publicacao_aditivo))
 
-
+# Função para obter todos os aditivos de um contrato
 def get_aditivos(contract_id):
     return fetch_query('''
-        SELECT * FROM aditivos WHERE contract_id = ? ORDER BY numero_aditivo
+        SELECT * FROM aditivos WHERE contract_id = %s ORDER BY numero_aditivo
     ''', (contract_id,))
 
 if __name__ == "__main__":
-    init_db()
-    print("Banco de dados, tabela 'contracts' e tabela 'aditivos' criados com sucesso.")
+    print("Banco de dados conectado com sucesso.")
