@@ -2,15 +2,22 @@ import psycopg2
 from psycopg2 import sql
 from datetime import datetime
 from decimal import Decimal
+import streamlit as st
+
+
+host = st.secrets["general"]["host"]
+database = st.secrets["general"]["database"]
+user = st.secrets["general"]["user"]
+password = st.secrets["general"]["password"]
 
 
 # Função para criar a conexão com o banco de dados Supabase
 def connect_db():
     return psycopg2.connect(
-        host="aws-0-sa-east-1.pooler.supabase.com",
-        database="postgres",
-        user="postgres.bnuuqoacguqfvbtjuqmj",
-        password="contratos-sudema"
+        host=host,
+        database=database,
+        user=user,
+        password=password
     )
 
 def execute_query(query, params=()):
@@ -34,12 +41,14 @@ def fetch_query(query, params=()):
     return result
 
 
-def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao):
+def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, vig_final_contrato):
+
     # Convertendo datas para string no formato YYYY-MM-DD
     vig_inicio_str = vig_inicio.strftime('%Y-%m-%d') if isinstance(vig_inicio, datetime) else vig_inicio
     vig_fim_str = vig_fim.strftime('%Y-%m-%d') if isinstance(vig_fim, datetime) else vig_fim
     data_assinatura_str = data_assinatura.strftime('%Y-%m-%d') if isinstance(data_assinatura, datetime) else data_assinatura
     data_publicacao_str = data_publicacao.strftime('%Y-%m-%d') if isinstance(data_publicacao, datetime) else data_publicacao
+    vig_final_contrato_str = vig_final_contrato.strftime('%Y-%m-%d') if isinstance(vig_final_contrato, datetime) else vig_final_contrato
 
     # Garantir que valor_contrato seja Decimal para PostgreSQL
     valor_contrato_decimal = Decimal(valor_contrato)
@@ -50,15 +59,16 @@ def add_contract(numero_processo, numero_contrato, fornecedor, objeto, valor_con
     params = (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, 
               vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, 
               categoria, data_assinatura_str, data_publicacao_str, gestor, contato, 
-              setor, observacao, passivel_renovacao, aditivo_inicial)
+              setor, observacao, passivel_renovacao, aditivo_inicial, vig_final_contrato_str)
 
     print("Parâmetros:", params)  # Para verificar os valores antes de executar a consulta
 
     # Função para inserir no banco de dados
     execute_query('''
-    INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO contracts (numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, passivel_renovacao, aditivo, vig_final_contrato)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     ''', params)
+
 # Função para atualizar um contrato
 def update_contract(id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
                     modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
@@ -108,7 +118,7 @@ def get_contract_by_id(id):
     result = fetch_query('''
         SELECT id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
                modalidade, amparo_legal, categoria, data_assinatura, data_publicacao, gestor, contato, setor, observacao, 
-               passivel_renovacao, aditivo
+               passivel_renovacao, aditivo, vig_final_contrato
         FROM contracts WHERE id = %s
     ''', (id,))
     return result[0] if result else None

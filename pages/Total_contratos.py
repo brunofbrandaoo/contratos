@@ -149,17 +149,21 @@ def add_contract_dialog():
             vig_fim_str = vig_fim.strftime('%Y-%m-%d')
             data_assinatura_str = data_assinatura.strftime('%Y-%m-%d')
             data_publicacao_str = data_publicacao.strftime('%Y-%m-%d')
+            
+            # Definir a vigência final do contrato como o valor de vig_fim no momento da criação
+            vig_final_contrato_str = vig_fim.strftime('%Y-%m-%d')
 
             # Função que insere no banco
             add_contract(
                 numero_processo, numero_contrato, fornecedor, objeto, valor_contrato_decimal, 
                 vig_inicio_str, vig_fim_str, prazo_limite, modalidade, amparo_legal, categoria, 
                 data_assinatura_str, data_publicacao_str, gestor, contato, setor, observacao, 
-                passivel_renovacao
+                passivel_renovacao, vig_final_contrato_str
             )
 
             st.session_state.show_add_contract_dialog = False
             st.rerun()
+
 
 @st.experimental_dialog(title="Adicionar Aditivo")
 def add_aditivo_dialog(contract_id, numero_contrato, vig_fim_atual, valor_contrato_atual):
@@ -338,6 +342,19 @@ def edit_contract_dialog(contract):
         st.session_state.show_edit_contract_dialog = False
         st.rerun()
 
+def format_date(date_value):
+    """Converte uma data `datetime.date`, `datetime.datetime` ou string `YYYY-MM-DD` para `DD-MM-YYYY`."""
+    if isinstance(date_value, datetime) or isinstance(date_value, date):
+        return date_value.strftime('%d-%m-%Y')
+    elif isinstance(date_value, str):
+        try:
+            return datetime.strptime(date_value, '%Y-%m-%d').strftime('%d-%m-%Y')
+        except ValueError:
+            # Caso a string não esteja no formato esperado
+            return date_value
+    return date_value  # Retorna o valor original se não for datetime, date, nem string
+
+
 
 def show_aditivo_details(contract_id):
     aditivos = get_aditivos(contract_id)
@@ -350,6 +367,11 @@ def show_aditivo_details(contract_id):
         """, unsafe_allow_html=True)
 
         for i, aditivo in enumerate(aditivos, 1):  # `i` começa em 1 e incrementa com cada iteração
+            # Convertendo as datas para o formato `DD-MM-YYYY`
+            vigencia_final = format_date(aditivo[3])
+            assinatura = format_date(aditivo[7])
+            publicacao = format_date(aditivo[8])
+
             st.markdown(f"""
             <div style="
                 background-color: #ffffff; 
@@ -385,13 +407,13 @@ def show_aditivo_details(contract_id):
                 </div>
                 <div style="flex: 1; min-width: 250px; margin-right: 20px;">
                     <p style="margin: 0; font-size: 18px;"><strong>Número do Aditivo:</strong> {aditivo[5]}</p>
-                    <p style="margin: 0; font-size: 18px;"><strong>Data de Vigência Final do Aditivo:</strong> {aditivo[3]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Vigência Final do Aditivo:</strong> {vigencia_final}</p>
                     <p style="margin: 0; font-size: 18px;"><strong>Valor do aditivo:</strong> R$ {aditivo[4]:.2f}</p>
                 </div>
                 <div style="flex: 1; min-width: 250px; margin-left: 20px;">
                     <p style="margin: 0; font-size: 18px;"><strong>Objeto do Aditivo:</strong> {aditivo[6]}</p>
-                    <p style="margin: 0; font-size: 18px;"><strong>Data de Assinatura do Aditivo:</strong> {aditivo[7]}</p>
-                    <p style="margin: 0; font-size: 18px;"><strong>Data de Publicação do Aditivo:</strong> {aditivo[8]}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Assinatura do Aditivo:</strong> {assinatura}</p>
+                    <p style="margin: 0; font-size: 18px;"><strong>Data de Publicação do Aditivo:</strong> {publicacao}</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -408,7 +430,7 @@ def contract_details_page(contract_id):
         (
             id, numero_processo, numero_contrato, fornecedor, objeto, valor_contrato, vig_inicio, vig_fim, prazo_limite, 
             modalidade, amparo_legal, categoria, data_assinatura, 
-            data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao, aditivo
+            data_publicacao, gestor, contato, setor, movimentacao, passivel_renovacao, aditivo, vig_final_contrato
         ) = contract
 
          # Formatar as datas no formato dia/mês/ano
@@ -416,6 +438,7 @@ def contract_details_page(contract_id):
         vig_fim_formatada = vig_fim.strftime('%d/%m/%Y') if isinstance(vig_fim, date) else vig_fim
         data_assinatura_formatada = data_assinatura.strftime('%d/%m/%Y') if isinstance(data_assinatura, date) else data_assinatura
         data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if isinstance(data_publicacao, date) else data_publicacao
+        vig_final_contrato_formatada = vig_final_contrato.strftime('%d/%m/%Y') if isinstance(vig_fim, date) else vig_final_contrato
 
         dias_vencer = calculate_days_to_expiry(vig_fim)
         situacao = calculate_situation(dias_vencer, passivel_renovacao)
@@ -443,7 +466,7 @@ def contract_details_page(contract_id):
                 <strong>Vigência Início:</strong> {vig_inicio_formatada}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
-                <strong>Vigência Fim:</strong> {vig_fim_formatada}
+                <strong>Vigência Fim:</strong> {vig_final_contrato_formatada}
             </div>
             <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); font-size: 24px;">
                 <strong>Prazo Limite (anos):</strong> {prazo_limite}
