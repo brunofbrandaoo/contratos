@@ -1,3 +1,4 @@
+from supabase import create_client, Client
 import pandas as pd
 import streamlit as st
 from db import add_contract, update_contract, delete_contract, get_contracts, get_contract_by_id, add_aditivo, get_aditivos
@@ -6,6 +7,16 @@ import os
 import uuid
 from decimal import Decimal
 from datetime import datetime, date
+
+url_supabase = st.secrets["supabase"]["url"]
+key_supabase = st.secrets["supabase"]["key"]
+# URL e chave de API do Supabase (substitua pelos seus valores)
+SUPABASE_URL = url_supabase
+SUPABASE_KEY = key_supabase
+
+# Conectar ao Supabase
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+bucket_name = 'contract-pdfs'
 
 # Configura o layout para wide (largura total da página)
 st.set_page_config(layout="wide")
@@ -22,24 +33,74 @@ st.logo(image="sudema.png", link=None)
 
 url_base = st.secrets["general"]["url_base"]
 
-def save_uploaded_file(uploaded_file):
-    # Define o diretório temporário para salvar os arquivos
-    save_directory = "uploads"  # Diretório onde os arquivos serão salvos
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)  # Cria o diretório se ele não existir
+def upload_pdf_to_supabase(uploaded_file, contract_id, bucket_name='contract-pdfs'):
+    """Faz o upload de um arquivo PDF para o bucket Supabase."""
+    # Lê o conteúdo do arquivo usando `uploaded_file.read()`
+    file_name = f"contract_{contract_id}/{uploaded_file.name}"
+    
+    # O `uploaded_file` é um `UploadedFile`, então devemos ler o conteúdo para bytes
+    file_content = uploaded_file.read()
+    
+    # Realiza o upload para o Supabase utilizando o conteúdo em bytes
+    response = supabase.storage.from_(bucket_name).upload(file_name, file_content)
+    
+    if response:
+        return file_name
+    else:
+        st.error("Erro ao fazer upload do arquivo para o Supabase.")
+        return None
 
-    # Gera um identificador único para o arquivo
-    unique_id = str(uuid.uuid4())
 
-    # Define o caminho completo do arquivo, incluindo o nome
-    file_path = os.path.join(save_directory, f"{unique_id}_{uploaded_file.name}")
+def get_public_url(contract_id, file_name, bucket_name='contract-pdfs'):
+    """Gera a URL pública correta incluindo o caminho completo."""
+    try:
+        # Construir o caminho completo do arquivo no bucket
+        full_file_path = f"contract_{contract_id}/{file_name}"
+        
+        # Gerar a URL pública utilizando o caminho completo
+        response = supabase.storage.from_(bucket_name).get_public_url(full_file_path)
 
-    # Salva o arquivo no diretório especificado
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+        # Verificar se a resposta é um dicionário e possui a chave 'publicURL'
+        if isinstance(response, dict) and 'publicURL' in response:
+            return response['publicURL']
+        else:
+            st.error(f"Erro ao gerar URL pública: {response}")
+            return None
+    except Exception as e:
+        st.error(f"Erro ao gerar URL pública para download: {e}")
+        return None
 
-    # Retorna o caminho do arquivo salvo
-    return file_path
+def display_file_as_download_button(contract_id, file_name, bucket_name='contract-pdfs'):
+    """Exibe um botão de download para o arquivo PDF usando o Streamlit."""
+    try:
+        # Lê o arquivo do Supabase e faz o download para exibição
+        response = supabase.storage.from_(bucket_name).download(f"contract_{contract_id}/{file_name}")
+        
+        if response:
+            # Exibir o botão de download usando o conteúdo do arquivo
+            st.download_button(
+                label=f"Baixar {file_name}",
+                data=response,
+                file_name=file_name,
+                mime='application/pdf'
+            )
+        else:
+            st.error(f"Não foi possível gerar o link para {file_name}.")
+    except Exception as e:
+        st.error(f"Erro ao fazer o download do arquivo: {e}")
+
+
+
+
+def list_files_in_bucket(bucket_name, path=''):
+    """Lista todos os arquivos no bucket."""
+    try:
+        response = supabase.storage.from_(bucket_name).list(path=path)
+        return response
+    except Exception as e:
+        st.error(f"Erro ao listar arquivos no bucket: {e}")
+        return []
+
 
 # Função para calcular a situação do contrato
 def calculate_situation(dias_vencer, passivel_renovacao):
@@ -556,20 +617,34 @@ def contract_details_page(contract_id):
                 st.session_state['show_add_aditivo_dialog'] = id
                 add_aditivo_dialog(id, numero_contrato, vig_fim, valor_contrato)
         with col4:
-            uploaded_file = st.file_uploader("Anexos", type="pdf")
-            if uploaded_file is not None:
-                # Salva o arquivo usando um identificador único
-                file_path = save_uploaded_file(uploaded_file, contract_id)
-                st.success(f"Arquivo PDF anexado com sucesso: {file_path}")
+         uploaded_file = st.file_uploader("Faça o upload de um arquivo PDF", type="pdf")
+    if uploaded_file is not None:
+        # Salvar no Supabase e obter o nome do arquivo salvo
+        file_name = upload_pdf_to_supabase(uploaded_file, contract_id)
+        if file_name:
+            st.success(f"Arquivo PDF '{uploaded_file.name}' anexado com sucesso!")
 
-                # Botão para download do arquivo salvo
-                with open(file_path, "rb") as f:
-                    st.download_button(
-                        label="Baixar Arquivo",
-                        data=f,
-                        file_name=uploaded_file.name,
-                        mime="application/pdf"
-                    )
+            # Gerar URL pública para o download usando o caminho correto
+            public_url = get_public_url(contract_id, uploaded_file.name)
+
+            # Exibir botão de download com o link correto
+            if public_url:
+                display_file_as_download_button(contract_id, uploaded_file.name)
+            else:
+                st.error("Não foi possível gerar o link de download público.")
+
+    # Listar arquivos anexados
+    st.subheader("Arquivos Anexados")
+    files = supabase.storage.from_(bucket_name).list(path=f"contract_{contract_id}/")
+
+    if files:
+        for file in files:
+            file_name = file['name']
+            
+            # Exibir botão de download para cada arquivo anexado
+            display_file_as_download_button(contract_id, file_name.split('/')[-1])
+    else:
+        st.write("Nenhum arquivo anexado a este contrato.")
 
         show_aditivo_details(contract_id)
 
