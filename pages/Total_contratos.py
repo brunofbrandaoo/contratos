@@ -616,35 +616,40 @@ def contract_details_page(contract_id):
             if st.button(f"Adicionar Aditivo {numero_contrato}", key=f"add_aditivo_{id}"):
                 st.session_state['show_add_aditivo_dialog'] = id
                 add_aditivo_dialog(id, numero_contrato, vig_fim, valor_contrato)
+        uploaded_file = None  # Inicializar a variável no início do escopo
+
+        # Coluna 4 onde o arquivo pode ser enviado
         with col4:
-         uploaded_file = st.file_uploader("Faça o upload de um arquivo PDF", type="pdf")
-    if uploaded_file is not None:
-        # Salvar no Supabase e obter o nome do arquivo salvo
-        file_name = upload_pdf_to_supabase(uploaded_file, contract_id)
-        if file_name:
-            st.success(f"Arquivo PDF '{uploaded_file.name}' anexado com sucesso!")
+            uploaded_file = st.file_uploader("Faça o upload de um arquivo PDF", type="pdf")
 
-            # Gerar URL pública para o download usando o caminho correto
-            public_url = get_public_url(contract_id, uploaded_file.name)
+        # Verificar se há algum arquivo anexado
+        if uploaded_file is not None:
+            # Salvar no Supabase e obter o nome do arquivo salvo
+            file_name = upload_pdf_to_supabase(uploaded_file, contract_id)
+            if file_name:
+                st.success(f"Arquivo PDF '{uploaded_file.name}' anexado com sucesso!")
 
-            # Exibir botão de download com o link correto
-            if public_url:
-                display_file_as_download_button(contract_id, uploaded_file.name)
-            else:
-                st.error("Não foi possível gerar o link de download público.")
+                # Gerar URL pública para o download usando o caminho correto
+                public_url = get_public_url(contract_id, uploaded_file.name)
 
-    # Listar arquivos anexados
-    st.subheader("Arquivos Anexados")
-    files = supabase.storage.from_(bucket_name).list(path=f"contract_{contract_id}/")
+                # Exibir botão de download com o link correto
+                if public_url:
+                    display_file_as_download_button(contract_id, uploaded_file.name)
+                else:
+                    st.error("Não foi possível gerar o link de download público.")
 
-    if files:
-        for file in files:
-            file_name = file['name']
-            
-            # Exibir botão de download para cada arquivo anexado
-            display_file_as_download_button(contract_id, file_name.split('/')[-1])
-    else:
-        st.write("Nenhum arquivo anexado a este contrato.")
+        # Listar arquivos anexados
+        st.subheader("Arquivos Anexados")
+        files = supabase.storage.from_(bucket_name).list(path=f"contract_{contract_id}/")
+
+        # Exibir arquivos anexados ou informar que não há arquivos
+        if files:
+            for file in files:
+                file_name = file['name']
+                # Exibir botão de download para cada arquivo anexado
+                display_file_as_download_button(contract_id, file_name.split('/')[-1])
+        else:
+            st.write("Nenhum arquivo anexado a este contrato.")
 
         show_aditivo_details(contract_id)
 
